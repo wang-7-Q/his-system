@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.neuedu.mapper.InspectionRequestMapper">
+  <insert id="addInspectionRequest" parameterType="java.lang.String">
+    INSERT INTO  inspection_request
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+    	<if test="register_id!=null and register_id!='' ">
+    		register_id,
+    	</if>
+    	<if test="medical_technology_id!=null and medical_technology_id!='' ">
+    		medical_technology_id,
+    	</if>
+    	<if test="inspection_info!=null and inspection_info!='' ">
+    		inspection_info,
+    	</if>
+    	<if test="inspection_position!=null and inspection_position!='' ">
+    		inspection_position,
+    	</if>
+    	<if test="inspection_remark!=null and inspection_remark!='' ">
+    		inspection_remark,
+    	</if>
+    	creation_time,inspection_state
+    </trim>
+    <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
+    	<if test="register_id!=null and register_id!='' ">
+    		#{register_id,jdbcType=VARCHAR},
+    	</if>
+    	<if test="medical_technology_id!=null and medical_technology_id!='' ">
+    		#{medical_technology_id,jdbcType=VARCHAR},
+    	</if>
+    	<if test="inspection_info!=null and inspection_info!='' ">
+    		#{inspection_info,jdbcType=VARCHAR},
+    	</if>
+    	<if test="inspection_position!=null and inspection_position!='' ">
+    		#{inspection_position,jdbcType=VARCHAR},
+    	</if>
+    	<if test="inspection_remark!=null and inspection_remark!='' ">
+    		#{inspection_remark,jdbcType=VARCHAR},
+    	</if>
+    	now(),"已开立"
+    </trim>
+  </insert>
+  
+  <select id="getInspectionRequestAndTechnology" parameterType="java.util.Map" resultType="java.util.Map">
+  	SELECT r.id id ,m.tech_name item_name,m.tech_price item_price,
+  		m.tech_format item_format,"检验" as item_type,
+  		r.creation_time item_create_time,
+  		r.inspection_state item_state
+  	FROM inspection_request r, medical_technology m
+  	WHERE r.medical_technology_id = m.id
+  		<if test="inspection_state!=null and inspection_state!='' ">
+  		AND r.inspection_state=#{inspection_state,jdbcType=VARCHAR}
+  		</if>
+  		AND r.register_id=#{register_id,jdbcType=VARCHAR}
+  </select>
+  
+	<!-- 得到患者检验和医生检验医嘱数据，根据患者的id -->
+	<select id="getInspectionPatientTableByRegist" parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT 
+			r.id rid,
+			r.register_id register_id,
+			r.inspection_info check_info,
+			r.inspection_position check_position,
+			r.creation_time creation_time,
+			r.inspection_employee_id check_id,
+			r.inspection_time check_time,
+			r.inspection_result check_result,
+			r.inspection_state check_state,
+			r.inspection_remark check_remark,
+			m.id mid,
+			m.tech_code item_code,
+			m.tech_name item_name,
+			m.tech_price item_price,
+			m.tech_format item_format,
+			e.realname check_employee_name
+		FROM inspection_request r, medical_technology m,employee e
+		WHERE r.medical_technology_id = m.id
+			AND r.inspection_employee_id = e.id
+			AND r.register_id=#{registid,jdbcType=VARCHAR}
+	</select>
+  
+	<update id="updateStateById">
+	UPDATE inspection_request
+	SET inspection_state=#{state,jdbcType=VARCHAR}
+	WHERE id=#{id,jdbcType=INTEGER}
+	</update>
+  
+  	<!-- 取得等待检验信息（分页、查询） -->
+	<select id="getWaitInspection" resultType="java.util.Map">
+	SELECT r.*
+	FROM register r , (select register_id,inspection_state from inspection_request group by register_id,inspection_state having inspection_state ="已缴费") c
+	WHERE r.id = c.register_id
+	 	AND date(visit_date) = date(now())
+	 	<if test="case_number!=null and case_number!=''">
+			AND r.case_number = #{case_number}
+		</if>
+		<if test="real_name!=null and real_name!=''">
+			AND r.real_name = #{real_name}
+		</if>
+	ORDER BY r.visit_date DESC
+	LIMIT ${(nowPageNumber-1) * pageSize} ,#{pageSize}
+	</select>  
+  	<!-- 取得等待检验信息数量（查询） -->
+	<select id="getWaitInspectionCount" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+	SELECT count(id)
+	FROM register r , (select register_id,inspection_state from inspection_request group by register_id,inspection_state having inspection_state="已缴费") c
+	WHERE r.id = c.register_id
+		<if test="case_number!=null and case_number!=''">
+			AND r.case_number = #{case_number}
+		</if>
+		<if test="real_name!=null and real_name!=''">
+			AND r.real_name = #{real_name}
+		</if>
+	</select>
+	
+	<!-- 取得完成检查信息（分页、查询） -->
+	<select id="getFinishInspection" resultType="java.util.Map">
+	SELECT r.*
+	FROM register r , (select register_id,inspection_state from inspection_request group by register_id,inspection_state having inspection_state ="执行完成") c
+	WHERE r.id = c.register_id
+	 	<if test="case_number!=null and case_number!=''">
+			AND r.case_number = #{case_number}
+		</if>
+		<if test="real_name!=null and real_name!=''">
+			AND r.real_name = #{real_name}
+		</if>
+	LIMIT ${(nowPageNumber-1) * pageSize} ,#{pageSize}
+	</select>	 
+  	<!-- 取得完成检查信息数量（查询） -->
+	<select id="getFinishInspectionCountNumber" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+	SELECT count(id)
+	FROM register r , (select register_id,inspection_state from inspection_request group by register_id,inspection_state having inspection_state="执行完成") c
+	WHERE r.id = c.register_id
+		<if test="case_number!=null and case_number!=''">
+			AND r.case_number = #{case_number}
+		</if>
+		<if test="real_name!=null and real_name!=''">
+			AND r.real_name = #{real_name}
+		</if>
+	</select>
+	
+	<!-- 根据患者id得到已经检验完成的检验项目 -->
+	<select id="getFinishInspectionByRegistid" parameterType="java.lang.String" resultType="java.util.Map">
+	SELECT r.*,m.tech_code item_code,m.tech_name item_name,m.tech_price item_price,m.price_type item_type
+	FROM inspection_request r , medical_technology m
+	WHERE r.medical_technology_id = m.id 
+		AND r.inspection_state="执行完成"
+		AND r.register_id=#{id}
+	</select>
+	
+	
+	<select id="getFinishInspectionCount" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+	SELECT count(id)
+	FROM register r , (select register_id,inspection_state from inspection_request group by register_id,inspection_state having inspection_state ="执行完成") c
+	WHERE r.id = c.register_id
+		AND date(r.visit_date) = date(now())
+	</select>
+	
+	<update id="updataInspectionPatient" parameterType="java.lang.String">
+	UPDATE inspection_request
+	SET 
+		inspection_employee_id=#{inspection_employee_id},
+		inspection_time = now(),
+		inspection_state = "执行完成"
+	WHERE id=#{id}
+	</update>
+	
+	<!-- 提交检查结果 -->
+	<update id="updateInspectionInput" parameterType="java.lang.String">
+	UPDATE inspection_request
+	SET 
+		inputinspection_employee_id=#{employee_id},
+		inspection_state = "已出结果",
+		inspection_result = #{inspection_result}
+	WHERE id=#{id}
+	</update>
+	
+</mapper>

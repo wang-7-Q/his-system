@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(hvigorw assembleHap -p product=default --no-daemon)",
+      "Bash(export NODE_HOME=\"C:/Users/32031/AppData/Local/Temp/my-node\")",
+      "Read(//c/Users/32031/AppData/Local/Temp/my-node/bin/**)",
+      "Bash(export NODE_HOME=\"/tmp/my-node\")",
+      "Read(//d/DevEco Studio/sdk//**)",
+      "Read(//c/Users/32031/AppData/Local/Huawei/Sdk/**)",
+      "Read(//c/Program Files/Huawei/**)"
+    ]
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bash *)",
+      "Bash(python3 -c \"import json; pages=json.load\\(open\\('C:/Users/32031/Desktop/Front/entry/src/main/resources/base/profile/main_pages.json'\\)\\); print\\(f'Registered pages: {len\\(pages\\)}'\\)\")",
+      "Bash(gh auth *)",
+      "Bash(git init *)",
+      "Bash(git add *)",
+      "Bash(git rm *)",
+      "Bash(git reset *)"
+    ]
+  }
+}

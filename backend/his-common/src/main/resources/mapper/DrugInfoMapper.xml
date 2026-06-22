@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.neuedu.mapper.DrugInfoMapper">
+	<!-- 根据药品名称和拼音助记码进行模糊查询 -->
+	<select id="searchDrug" resultType="java.util.Map" parameterType="java.util.Map">
+	SELECT *
+	FROM drug_info
+	WHERE 1=1
+	<if test="drug_name!=null and drug_name!='' ">
+		AND drug_name like concat('%',#{drug_name,jdbcType=VARCHAR},'%')
+	</if>
+	<if test="mnemonic_code!=null and mnemonic_code!='' ">
+		AND mnemonic_code like concat('%',#{mnemonic_code,jdbcType=VARCHAR},'%')
+	</if>
+	LIMIT 0,50
+	</select>
+ 
+	<!-- 根据药品名称和拼音助记码进行模糊查询(分页) -->
+	<select id="searchPageDrug" resultType="java.util.Map" parameterType="java.util.Map">
+	SELECT *
+	FROM drug_info
+	WHERE 1=1
+	<if test="drug_name!=null and drug_name!='' ">
+		AND drug_name like concat('%',#{drug_name,jdbcType=VARCHAR},'%')
+	</if>
+	<if test="drug_code!=null and drug_code!='' ">
+		AND drug_code like concat('%',#{drug_code,jdbcType=VARCHAR},'%')
+	</if>
+	<if test="mnemonic_code!=null and mnemonic_code!='' ">
+		AND mnemonic_code like concat('%',#{mnemonic_code,jdbcType=VARCHAR},'%')
+	</if>
+	LIMIT ${(nowPageNumber-1) * pageSize} ,#{pageSize}
+	</select>
+	<!-- 根据药品名称和拼音助记码进行模糊查询(分页) -->
+	<select id="searchPageDrugCount" resultType="java.lang.Integer" parameterType="java.util.Map">
+	SELECT count(*)
+	FROM drug_info
+	WHERE 1=1
+	<if test="drug_name!=null and drug_name!='' ">
+		AND drug_name like concat('%',#{drug_name,jdbcType=VARCHAR},'%')
+	</if>
+	<if test="drug_code!=null and drug_code!='' ">
+		AND drug_code like concat('%',#{drug_code,jdbcType=VARCHAR},'%')
+	</if>
+	<if test="mnemonic_code!=null and mnemonic_code!='' ">
+		AND mnemonic_code like concat('%',#{mnemonic_code,jdbcType=VARCHAR},'%')
+	</if>
+	</select>
+</mapper>

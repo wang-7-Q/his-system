@@ -1,0 +1,73 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.neuedu</groupId>
+  <artifactId>hismodules</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <packaging>pom</packaging>
+  <modules>
+  	<module>his-common</module>
+  	<module>his-drugstore</module>
+  	<module>his-outpatient</module>
+  </modules>
+  
+  <properties>
+  	<java.version>1.8</java.version>
+  </properties>
+  
+  <parent>
+  	<groupId>org.springframework.boot</groupId>
+  	<artifactId>spring-boot-starter-parent</artifactId>
+  	<version>2.2.10.RELEASE</version>
+  </parent>
+  
+  <dependencies>
+  	<!-- Spring Boot 核心 :Web容器-->
+  	<dependency>
+  		<groupId>org.springframework.boot</groupId>
+  		<artifactId>spring-boot-starter-web</artifactId>  		
+  	</dependency>
+  	
+  	<!-- Spring Boot 测试 : JUnit -->
+  	<dependency>
+  		<groupId>org.springframework.boot</groupId>
+  		<artifactId>spring-boot-starter-test</artifactId>  		
+  	</dependency>
+  	
+  	<!-- Spring Boot 数据库使用 : MyBatis -->
+  	<dependency>
+  		<groupId>org.mybatis.spring.boot</groupId>
+  		<artifactId>mybatis-spring-boot-starter</artifactId>  	
+  		<version>2.0.0</version>	
+  	</dependency>
+  	
+  	<!-- Spring Boot 数据库使用 : MySQL驱动 -->
+  	<dependency>
+  		<groupId>mysql</groupId>
+  		<artifactId>mysql-connector-java</artifactId>  	
+  	</dependency>
+  	
+  </dependencies>
+  <!-- 修改打包插件,部署上线时添加   -->
+  <build>
+    <plugins>        
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <version>3.1</version>
+            <configuration>
+                <source>${java.version}</source>
+                <target>${java.version}</target>
+            </configuration>
+        </plugin>    
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+                <skipTests>true</skipTests>    
+                <!--默认关掉单元测试 -->
+            </configuration>
+        </plugin>
+    </plugins>
+	</build>
+  
+</project>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.neuedu.mapper.DiseaseMapper">
+  <select id="getDisease" resultType="java.util.Map" parameterType="java.util.Map">
+    SELECT * 
+    FROM disease
+    WHERE 1=1
+    	<if test="disease_code!=null and disease_code!='' ">
+    		AND disease_code=#{disease_code,jdbcType=VARCHAR}
+    	</if>
+    	<if test="disease_name!=null and disease_name!='' ">
+    		AND disease_name=#{disease_name,jdbcType=VARCHAR}
+    	</if>
+    	<if test="diseaseICD!=null and diseaseICD!='' ">
+    		AND diseaseICD=#{diseaseICD,jdbcType=VARCHAR}
+    	</if>
+    LIMIT 0,10
+  </select>
+</mapper>

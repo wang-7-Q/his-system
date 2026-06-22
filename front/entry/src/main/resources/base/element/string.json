@@ -1,0 +1,6 @@
+{
+  "string": [
+    { "name": "app_name", "value": "云医院HIS" },
+    { "name": "internet_permission_reason", "value": "需要网络访问以连接医院系统后端" }
+  ]
+}

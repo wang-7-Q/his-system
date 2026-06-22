@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.neuedu.mapper.MedicalTechnologyMapper">
+	<select id="getPhysicianCheckSearch" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT *
+		FROM medical_technology
+		WHERE tech_type="检查"
+		<if test="tech_code!=null and tech_code!='' ">
+			AND tech_code=#{tech_code,jdbcType=VARCHAR}
+		</if>
+		<if test="tech_name!=null and tech_name!='' ">
+			AND tech_name=#{tech_name,jdbcType=VARCHAR}
+		</if>
+		LIMIT 0,10
+	</select>
+	
+	<select id="getPhysicianInspectionSearch" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT *
+		FROM medical_technology
+		WHERE tech_type="检验"
+		<if test="tech_code!=null and tech_code!='' ">
+			AND tech_code=#{tech_code,jdbcType=VARCHAR}
+		</if>
+		<if test="tech_name!=null and tech_name!='' ">
+			AND tech_name=#{tech_name,jdbcType=VARCHAR}
+		</if>
+		LIMIT 0,10
+	</select>
+	
+	<select id="getPhysicianDisposalSearch" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT *
+		FROM medical_technology
+		WHERE tech_type="处置"
+		<if test="tech_code!=null and tech_code!='' ">
+			AND tech_code=#{tech_code,jdbcType=VARCHAR}
+		</if>
+		<if test="tech_name!=null and tech_name!='' ">
+			AND tech_name=#{tech_name,jdbcType=VARCHAR}
+		</if>
+		LIMIT 0,10
+	</select>
+</mapper>

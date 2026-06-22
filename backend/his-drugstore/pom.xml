@@ -1,0 +1,41 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <!-- 药库管理模块：药品管理（增加药品、修改药品、删除药品、查找药品）、给患者发药、给患者退药 -->
+  <parent>
+    <groupId>com.neuedu</groupId>
+    <artifactId>hismodules</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+  </parent>
+  <artifactId>his-drugstore</artifactId>
+  <dependencies>
+  	<!-- 自定义的通用模块:common -->
+  	<dependency>
+  		<groupId>com.neuedu</groupId>
+  		<artifactId>his-common</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+  	</dependency>
+  </dependencies>
+  <!-- 部署上线时添加   -->
+  <build>
+       <plugins>
+           <plugin>
+               <groupId>org.springframework.boot</groupId>
+               <artifactId>spring-boot-maven-plugin</artifactId>
+               <configuration>
+                   <!-- 该项目的启动入口 -->
+                   <mainClass>com.neuedu.DrugStoreApplication</mainClass>
+                   <!--<layout></layout>-->
+               </configuration>
+               <executions>
+                   <execution>
+                       <goals>
+                           <!--把依赖的所有包都打包生成的Jar包中-->
+                           <goal>repackage</goal>
+                       </goals>
+                   </execution>
+               </executions>
+           </plugin>
+       </plugins>
+  </build>
+  
+</project>

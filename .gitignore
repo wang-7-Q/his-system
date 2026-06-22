@@ -1,0 +1,33 @@
+# ===== 前端 (HarmonyOS) =====
+front/node_modules/
+front/oh_modules/
+front/.hvigor/
+front/.idea/
+front/.preview/
+front/build/
+front/.cxx/
+front/.test/
+front/.clangd/
+front/.clang-format
+front/.clang-tidy
+front/.appanalyzer
+front/local.properties
+
+# ===== 后端 (Spring Boot) =====
+backend/target/
+backend/**/target/
+backend/*.class
+backend/*.jar
+backend/*.war
+
+# ===== 通用 =====
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+# ===== IDE / 工具临时文件 =====
+.idea/
+.superpowers/
+.claude/settings.local.json
+*.docx

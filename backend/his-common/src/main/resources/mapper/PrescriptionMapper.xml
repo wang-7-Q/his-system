@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.neuedu.mapper.PrescriptionMapper">
+	<insert id="insertPrescription" >
+	INSERT INTO prescription(
+		register_id,drug_id,drug_usage,drug_number,drug_state,creation_time
+	)
+	VALUES(
+		#{register_id,jdbcType=INTEGER},
+		#{drug_id,jdbcType=INTEGER},
+		#{drug_usage,jdbcType=VARCHAR},
+		#{drug_number,jdbcType=INTEGER},
+		"已开立",
+		now()
+	)
+	</insert>
+	<!-- 根据患者id和状态，查询药品信息 -->
+	<select id="getPrescriptionRequestAndDrug" parameterType="java.util.Map" resultType="java.util.Map">
+ 	SELECT p.id id,d.drug_code item_code,d.drug_name item_name,
+ 		d.drug_price item_price,p.drug_number item_number,
+ 		"药品" as item_type,d.drug_format item_format,
+ 		p.creation_time item_create_time,
+ 		d.drug_unit drug_unit, d.manufacturer manufacturer,
+ 		p.drug_state item_state
+ 	FROM prescription p, drug_info d
+ 	WHERE p.drug_id = d.id
+ 		<if test="drug_state!=null and drug_state!=''">
+ 		AND p.drug_state=#{drug_state,jdbcType=VARCHAR}
+ 		</if>
+ 		AND p.register_id=#{register_id,jdbcType=INTEGER}
+	</select>
+	 
+	<update id="updateStateById">
+	UPDATE prescription
+	SET drug_state=#{drug_state,jdbcType=VARCHAR}
+	WHERE id=#{id,jdbcType=INTEGER}
+	</update>
+	
+	
+	<!-- 根据处方属性得到患者信息（分页） -->
+	<select id="getPrescriptionAndPatientByProperty" resultType="java.util.Map">
+	SELECT r.*
+	FROM register r , (select register_id,drug_state from prescription group by register_id,drug_state having drug_state =#{drug_state}) c
+	WHERE r.id = c.register_id
+	 	AND date(visit_date) = date(now())
+	 	<if test="case_number!=null and case_number!=''">
+			AND r.case_number = #{case_number}
+		</if>
+		<if test="real_name!=null and real_name!=''">
+			AND r.real_name = #{real_name}
+		</if>
+	ORDER BY r.visit_date DESC
+	LIMIT ${(nowPageNumber-1) * pageSize} ,#{pageSize}
+	</select>
+	<!-- 根据处方属性得到患者信息（分页） -->
+	<select id="getPrescriptionAndPatientCountByProperty" resultType="java.lang.Integer">
+	SELECT count(id)
+	FROM register r , (select register_id,drug_state from prescription group by register_id,drug_state having drug_state =#{drug_state}) c
+	WHERE r.id = c.register_id
+	 	AND date(visit_date) = date(now())
+	 	<if test="case_number!=null and case_number!=''">
+			AND r.case_number = #{case_number}
+		</if>
+		<if test="real_name!=null and real_name!=''">
+			AND r.real_name = #{real_name}
+		</if>
+	</select>
+ 
+</mapper>

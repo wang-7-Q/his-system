@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.neuedu.mapper.DisposalRequestMapper">
+	 <insert id="addDisposalRequest" parameterType="java.lang.String">
+	   INSERT INTO  disposal_request
+	   <trim prefix="(" suffix=")" suffixOverrides=",">
+	   	<if test="register_id!=null and register_id!='' ">
+	   		register_id,
+	   	</if>
+	   	<if test="medical_technology_id!=null and medical_technology_id!='' ">
+	   		medical_technology_id,
+	   	</if>
+	   	<if test="disposal_info!=null and disposal_info!='' ">
+	   		disposal_info,
+	   	</if>
+	   	<if test="disposal_position!=null and disposal_position!='' ">
+	   		disposal_position,
+	   	</if>
+	   	<if test="disposal_remark!=null and disposal_remark!='' ">
+	   		disposal_remark,
+	   	</if>
+	   	creation_time,disposal_state
+	   </trim>
+	   <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
+	   	<if test="register_id!=null and register_id!='' ">
+	   		#{register_id,jdbcType=VARCHAR},
+	   	</if>
+	   	<if test="medical_technology_id!=null and medical_technology_id!='' ">
+	   		#{medical_technology_id,jdbcType=VARCHAR},
+	   	</if>
+	   	<if test="disposal_info!=null and disposal_info!='' ">
+	   		#{disposal_info,jdbcType=VARCHAR},
+	   	</if>
+	   	<if test="disposal_position!=null and disposal_position!='' ">
+	   		#{disposal_position,jdbcType=VARCHAR},
+	   	</if>
+	   	<if test="disposal_remark!=null and disposal_remark!='' ">
+	   		#{disposal_remark,jdbcType=VARCHAR},
+	   	</if>
+	   	now(),"已开立"
+	   </trim>
+	 </insert>
+	 
+	<select id="getDisposalRequestAndTechnology" parameterType="java.util.Map" resultType="java.util.Map">
+	 	SELECT r.id id,m.tech_code item_code,
+	 		m.tech_name item_name,m.tech_price item_price,
+	 		m.tech_format item_format,"处置" as item_type,
+	 		r.creation_time item_create_time,
+	 		r.disposal_state item_state
+	 	FROM disposal_request r, medical_technology m
+	 	WHERE r.medical_technology_id = m.id
+	 		<if test="disposal_state!=null and disposal_state!='' ">
+	 		AND r.disposal_state=#{disposal_state,jdbcType=VARCHAR}
+	 		</if>
+	 		AND r.register_id=#{register_id,jdbcType=VARCHAR}
+	 </select>
+	 
+	 <!-- 得到患者处置和医生处置医嘱数据，根据患者的id -->
+	 <select id="getDisposalPatientTableByRegist" parameterType="java.lang.String" resultType="java.util.Map">
+	 	SELECT 
+	 		r.id rid,
+	 		r.register_id register_id,
+	 		r.disposal_info check_info,
+	 		r.disposal_position check_position,
+	 		r.creation_time creation_time,
+	 		r.disposal_employee_id check_id,
+	 		r.disposal_time check_time,
+	 		r.disposal_result check_result,
+	 		r.disposal_state check_state,
+	 		r.disposal_remark check_remark,
+	 		m.id mid,
+	 		m.tech_code item_code,
+	 		m.tech_name item_name,
+	 		m.tech_price item_price,
+	 		m.tech_format item_format,
+	 		e.realname check_employee_name
+	 	FROM disposal_request r, medical_technology m,employee e
+	 	WHERE r.medical_technology_id = m.id
+	 		AND r.disposal_employee_id = e.id
+	 		AND r.register_id=#{registid,jdbcType=VARCHAR}
+	 </select>
+	 
+	 <update id="updateStateById">
+	 UPDATE disposal_request
+	 SET disposal_state=#{state,jdbcType=VARCHAR}
+	 WHERE id=#{id,jdbcType=INTEGER}
+	 </update>
+	 
+	 <!-- 取得等待处置信息（分页、查询） -->
+	<select id="getWaitDisposal" resultType="java.util.Map">
+	SELECT r.*
+	FROM register r , (select register_id,disposal_state from disposal_request group by register_id,disposal_state having disposal_state ="已缴费") c
+	WHERE r.id = c.register_id
+	 	AND date(visit_date) = date(now())
+	 	<if test="case_number!=null and case_number!=''">
+			AND r.case_number = #{case_number}
+		</if>
+		<if test="real_name!=null and real_name!=''">
+			AND r.real_name = #{real_name}
+		</if>
+	ORDER BY r.visit_date DESC
+	LIMIT ${(nowPageNumber-1) * pageSize} ,#{pageSize}
+	</select>  
+  	<!-- 取得等待处置信息数量（查询） -->
+	<select id="getWaitDisposalCount" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+	SELECT count(id)
+	FROM register r , (select register_id,disposal_state from disposal_request group by register_id,disposal_state having disposal_state="已缴费") c
+	WHERE r.id = c.register_id
+		<if test="case_number!=null and case_number!=''">
+			AND r.case_number = #{case_number}
+		</if>
+		<if test="real_name!=null and real_name!=''">
+			AND r.real_name = #{real_name}
+		</if>
+	</select>
+	
+	<!-- 取得完成处置信息（分页、查询） -->
+	<select id="getFinishDisposal" resultType="java.util.Map">
+	SELECT r.*
+	FROM register r , (select register_id,disposal_state from disposal_request group by register_id,disposal_state having disposal_state ="执行完成") c
+	WHERE r.id = c.register_id
+	 	<if test="case_number!=null and case_number!=''">
+			AND r.case_number = #{case_number}
+		</if>
+		<if test="real_name!=null and real_name!=''">
+			AND r.real_name = #{real_name}
+		</if>
+	LIMIT ${(nowPageNumber-1) * pageSize} ,#{pageSize}
+	</select>	 
+  	<!-- 取得完成处置信息数量（查询） -->
+	<select id="getFinishDisposalCountNumber" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+	SELECT count(id)
+	FROM register r , (select register_id,disposal_state from disposal_request group by register_id,disposal_state having disposal_state="执行完成") c
+	WHERE r.id = c.register_id
+		<if test="case_number!=null and case_number!=''">
+			AND r.case_number = #{case_number}
+		</if>
+		<if test="real_name!=null and real_name!=''">
+			AND r.real_name = #{real_name}
+		</if>
+	</select>
+	
+	<!-- 根据患者id得到已经处置完成的处置项目 -->
+	<select id="getFinishDisposalByRegistid" parameterType="java.lang.String" resultType="java.util.Map">
+	SELECT r.*,m.tech_code item_code,m.tech_name item_name,m.tech_price item_price,m.price_type item_type
+	FROM disposal_request r , medical_technology m
+	WHERE r.medical_technology_id = m.id 
+		AND r.disposal_state="执行完成"
+		AND r.register_id=#{id}
+	</select>
+	
+	<select id="getFinishDisposalCount" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+	SELECT count(id)
+	FROM register r , (select register_id,disposal_state from disposal_request group by register_id,disposal_state having disposal_state ="执行完成") c
+	WHERE r.id = c.register_id
+		AND date(r.visit_date) = date(now())
+	</select>
+	
+	<update id="updataDisposalPatient" parameterType="java.lang.String">
+	UPDATE disposal_request
+	SET 
+		disposal_employee_id=#{disposal_employee_id},
+		disposal_time = now(),
+		disposal_state = "执行完成"
+	WHERE id=#{id}
+	</update>
+	
+	<!-- 提交处置结果 -->
+	<update id="updateDisposalInput" parameterType="java.lang.String">
+	UPDATE disposal_request
+	SET 
+		inputdisposal_employee_id=#{employee_id},
+		disposal_state = "已出结果",
+		disposal_result = #{disposal_result}
+	WHERE id=#{id}
+	</update>
+
+</mapper>

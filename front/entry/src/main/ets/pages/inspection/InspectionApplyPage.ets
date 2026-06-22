@@ -1,0 +1,72 @@
+import { InspectionService } from '../../services/InspectionService'
+import { PageInfo } from '../../components/PaginationBar'
+import { ColumnConfig } from '../../components/DataTable'
+import { promptAction } from '@kit.ArkUI'
+
+@ComponentV2
+struct InspectionApplyPage {
+  @Local tableData: Object[] = []
+  @Local loading: boolean = false
+  @Local pageInfo: PageInfo = { page: 1, size: 10, total: 0 }
+  @Local waitCount: number = 0
+  @Local finishCount: number = 0
+
+  private columns: ColumnConfig<Object>[] = [
+    { key: 'patient_name', title: '患者姓名', width: 100 },
+    { key: 'item_name', title: '检验项目', width: 130 },
+    { key: 'dept_name', title: '科室', width: 100 },
+    { key: 'status', title: '状态', width: 70 },
+  ]
+
+  aboutToAppear(): void {
+    this.loadCounts()
+    this.loadList()
+  }
+
+  private async loadCounts(): Promise<void> {
+    try {
+      const [wait, finish] = await Promise.all([
+        InspectionService.getWaitInspectionCount(),
+        InspectionService.getFinishInspectionCount(),
+      ])
+      if (wait.list && wait.list.length > 0) {
+        this.waitCount = Number((wait.list[0] as Record<string, Object>)['count'] || 0)
+      }
+      if (finish.list && finish.list.length > 0) {
+        this.finishCount = Number((finish.list[0] as Record<string, Object>)['count'] || 0)
+      }
+    } catch (_e) { /* optional */ }
+  }
+
+  private async loadList(): Promise<void> {
+    this.loading = true
+    try {
+      const result = await InspectionService.getWaitInspection()
+      if (result.list) {
+        this.tableData = result.list as Object[]
+        this.pageInfo.total = result.totalCount
+      }
+    } catch (_e) {
+      promptAction.showToast({ message: '加载检验申请列表失败', duration: 2000 })
+    } finally {
+      this.loading = false
+    }
+  }
+
+  build() {
+    Column() {
+      PageHeader({ title: '检验申请' })
+      Row() {
+        Text('待检验: ' + this.waitCount).fontSize(13).fontColor('#E6A23C').margin({ right: 20 })
+        Text('已完成: ' + this.finishCount).fontSize(13).fontColor('#67C23A')
+        Blank()
+      }.width('100%').padding(12).backgroundColor('#FFFFFF').borderRadius(8).margin({ bottom: 12 })
+
+      DataTable({ columns: this.columns, data: this.tableData, loading: this.loading })
+      PaginationBar({ pageInfo: this.pageInfo, onChange: (_p, _s) => this.loadList() })
+    }
+    .width('100%').height('100%').padding(16).backgroundColor('#F0F2F5')
+  }
+}
+
+export default InspectionApplyPage

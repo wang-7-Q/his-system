@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.neuedu.mapper.MedicalRecordMapper">
+	<!-- 给病历首页保存信息 -->
+	<insert id="addHomeMedicalRecord" parameterType="java.util.Map">
+		<selectKey resultType="java.lang.Integer" order="AFTER" keyProperty="id">
+			SELECT last_insert_id()
+		</selectKey>	
+		INSERT INTO medical_record(
+			register_id,readme,present,present_treat,history,allergy,physique,proposal,careful
+		)
+		VALUES (
+			#{register_id,jdbcType=INTEGER},#{readme,jdbcType=VARCHAR},
+			#{present,jdbcType=VARCHAR},#{present_treat,jdbcType=VARCHAR},
+			#{history,jdbcType=VARCHAR},#{allergy,jdbcType=VARCHAR},
+			#{physique,jdbcType=VARCHAR},#{proposal,jdbcType=VARCHAR},
+			#{careful,jdbcType=VARCHAR}
+		)
+	</insert>
+	<!-- 给病历首页保存疾病关联 -->
+	<insert id="addMedicalRecordDisease" parameterType="java.util.Map">			
+		INSERT INTO medical_record_disease(
+			medical_record_id,disease_id
+		)
+		VALUES (
+			#{medical_record_id,jdbcType=INTEGER},#{disease_id,jdbcType=INTEGER}
+		)
+	</insert>
+	
+	<!-- 根据registerid修改记录 -->
+	<update id="updateByRegisterid" parameterType="java.lang.String">
+	UPDATE medical_record
+	SET
+		diagnosis = #{diagnosis},
+		cure = #{cure}
+	WHERE
+		register_id = #{register_id}
+	</update>
+</mapper>	
