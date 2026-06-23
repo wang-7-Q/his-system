@@ -1,4 +1,5 @@
 import { AuthService } from '../services/AuthService'
+import { Constants } from '../common/Constants'
 
 @ComponentV2
 struct LoginPage {
@@ -39,54 +40,132 @@ struct LoginPage {
 
   build() {
     Column() {
-      // Brand header
+      // ── Brand header ──
       Column() {
-        Image($r('app.media.startIcon'))
-          .width(72).height(72).margin({ bottom: 16 })
+        // Logo with gradient circle
+        Stack() {
+          Circle()
+            .width(88)
+            .height(88)
+            .fill('rgba(22,119,255,0.08)')
+          Circle()
+            .width(72)
+            .height(72)
+            .fill('rgba(22,119,255,0.15)')
+          Image($r('app.media.startIcon'))
+            .width(48)
+            .height(48)
+            .borderRadius(12)
+        }
+        .margin({ bottom: 20 })
+
         Text('东软云医院 HIS')
-          .fontSize(28).fontWeight(FontWeight.Bold).fontColor('#20A0FF')
+          .fontSize(28)
+          .fontWeight(FontWeight.Bold)
+          .fontColor(Constants.COLOR_TEXT_PRIMARY)
+
         Text('Hospital Information System')
-          .fontSize(14).fontColor('#909399').margin({ top: 8 })
-      }.margin({ top: 80, bottom: 60 })
+          .fontSize(13)
+          .fontColor(Constants.COLOR_TEXT_HINT)
+          .margin({ top: 8 })
+          .letterSpacing(2)
+      }
+      .margin({ top: 80, bottom: 48 })
 
-      // Login form
+      // ── Login form card ──
       Column() {
-        TextInput({ placeholder: '请输入用户名' })
-          .width('100%').height(44).fontSize(15)
-          .borderRadius(8).backgroundColor('#F5F7FA')
-          .margin({ bottom: 16 })
-          .onChange((value: string) => {
-            this.username = value
-            this.errorMsg = ''
-          })
+        // Username
+        Row() {
+          Text('👤')
+            .fontSize(18)
+            .margin({ right: 10 })
+          TextInput({ placeholder: '请输入用户名' })
+            .width('100%')
+            .height(44)
+            .fontSize(15)
+            .borderRadius(0)
+            .backgroundColor(Color.Transparent)
+            .layoutWeight(1)
+            .onChange((value: string) => {
+              this.username = value
+              this.errorMsg = ''
+            })
+        }
+        .width('100%')
+        .padding({ left: 14, right: 14 })
+        .borderRadius(10)
+        .backgroundColor(Constants.COLOR_BG)
+        .margin({ bottom: 14 })
 
-        TextInput({ placeholder: '请输入密码' })
-          .width('100%').height(44).fontSize(15)
-          .borderRadius(8).backgroundColor('#F5F7FA')
-          .type(InputType.Password)
-          .onChange((value: string) => {
-            this.password = value
-            this.errorMsg = ''
-          })
+        // Password
+        Row() {
+          Text('🔒')
+            .fontSize(18)
+            .margin({ right: 10 })
+          TextInput({ placeholder: '请输入密码' })
+            .width('100%')
+            .height(44)
+            .fontSize(15)
+            .borderRadius(0)
+            .backgroundColor(Color.Transparent)
+            .type(InputType.Password)
+            .layoutWeight(1)
+            .onChange((value: string) => {
+              this.password = value
+              this.errorMsg = ''
+            })
+        }
+        .width('100%')
+        .padding({ left: 14, right: 14 })
+        .borderRadius(10)
+        .backgroundColor(Constants.COLOR_BG)
 
+        // Error message
         if (this.errorMsg) {
-          Text(this.errorMsg).fontSize(13).fontColor('#F56C6C').margin({ top: 8 })
+          Text(this.errorMsg)
+            .fontSize(12)
+            .fontColor(Constants.COLOR_DANGER)
+            .margin({ top: 10 })
+            .width('100%')
+            .textAlign(TextAlign.Start)
         }
 
+        // Login button
         Button(this.loading ? '登录中...' : '登 录')
-          .width('100%').height(44).fontSize(16)
-          .backgroundColor('#20A0FF').fontColor('#FFFFFF')
-          .borderRadius(8).margin({ top: 24 })
+          .width('100%')
+          .height(46)
+          .fontSize(16)
+          .fontWeight(FontWeight.Medium)
+          .fontColor('#FFFFFF')
+          .backgroundColor(Constants.COLOR_PRIMARY)
+          .borderRadius(10)
+          .margin({ top: 24 })
           .enabled(!this.loading)
+          .shadow({ radius: 4, color: 'rgba(22,119,255,0.3)' })
           .onClick(() => this.doLogin())
-      }
-      .width('100%').padding(24).backgroundColor('#FFFFFF')
-      .borderRadius(12).shadow({ radius: 10, color: 'rgba(0,0,0,0.08)' })
 
-      Text('提示: 请使用分配的科室账号登录')
-        .fontSize(11).fontColor('#C0C4CC').margin({ top: 40 })
+        // Demo credentials hint
+        Text('演示账号: root / 挂号 / 扁鹊 / 检查 / 检验 / 处置')
+          .fontSize(11)
+          .fontColor(Constants.COLOR_TEXT_HINT)
+          .margin({ top: 16 })
+      }
+      .width('100%')
+      .padding({ top: 24, bottom: 28, left: 20, right: 20 })
+      .backgroundColor(Constants.COLOR_CARD)
+      .borderRadius(16)
+      .shadow({ radius: 8, color: 'rgba(0,0,0,0.06)' })
+
+      // ── Footer ──
+      Text('请使用分配的科室账号登录')
+        .fontSize(11)
+        .fontColor('#C8CCD0')
+        .margin({ top: 36 })
     }
-    .width('100%').height('100%').padding(24).backgroundColor('#F0F2F5')
+    .width('100%')
+    .height('100%')
+    .padding({ left: 24, right: 24 })
+    .backgroundColor(Constants.COLOR_BG)
   }
 }
 
