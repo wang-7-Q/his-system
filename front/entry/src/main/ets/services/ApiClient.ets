@@ -1,5 +1,5 @@
 import { http } from '@kit.NetworkKit'
-import { RestBean } from '../models/RestBean'
+import { RestBean, createRestBean } from '../models/RestBean'
 import { Constants } from '../common/Constants'
 
 let requestCount: number = 0
@@ -114,7 +114,7 @@ export class ApiClient {
         method: method,
         header: headers,
         extraData: extraData,
-        expectDataType: http.HttpDataType.OBJECT,
+        expectDataType: http.HttpDataType.STRING,
         connectTimeout: Constants.REQUEST_TIMEOUT,
         readTimeout: Constants.REQUEST_TIMEOUT,
       })
@@ -123,10 +123,35 @@ export class ApiClient {
         throw new Error(`HTTP ${response.responseCode}`)
       }
 
-      const result: RestBean<T> = JSON.parse(response.result as string) as RestBean<T>
+      const bodyStr: string = response.result as string
+      const parsed: Object = JSON.parse(bodyStr) as Object
+      // 后端某些接口返回数组(如login)，需包装为RestBean格式
+      if (parsed instanceof Array) {
+        const arr: Object[] = parsed as Object[]
+        return createRestBean(arr as T[], 'success', 1)
+      }
+      const result: RestBean<T> = parsed as RestBean<T>
       return result
     } catch (err) {
-      throw new Error('网络请求失败 (' + requestId + ')')
+      // 尝试从 HarmonyOS http 错误对象中提取详细字段
+      let errMsg: string = ''
+      if (err instanceof Object) {
+        const e: Record<string, Object> = err as Record<string, Object>
+        const code: Object | undefined = e['code']
+        const data: Object | undefined = e['data']
+        if (code !== undefined) {
+          errMsg = errMsg + ' code=' + String(code)
+        }
+        if (data !== undefined) {
+          errMsg = errMsg + ' data=' + String(data)
+        }
+        if (errMsg === '') {
+          errMsg = JSON.stringify(err)
+        }
+      } else {
+        errMsg = String(err)
+      }
+      throw new Error('URL: ' + url + ' | ' + errMsg)
     } finally {
       request.destroy()
     }
@@ -150,5 +175,44 @@ export class ApiClient {
     const url: string = `${this.baseUrl(port)}${path}`
     const headers: Object = this.buildJsonHeaders()
     return this.makeRequest<T>(http.RequestMethod.POST, url, headers, jsonBody)
+  }
+
+  /** 发起请求并返回原始响应字符串（不解析 JSON），用于 plain/text 端点 */
+  private async makeRawRequest(
+    method: http.RequestMethod, url: string, headers: Object, extraData?: string | Object
+  ): Promise<string> {
+    const request: http.HttpRequest = http.createHttp()
+    try {
+      const response: http.HttpResponse = await request.request(url, {
+        method: method,
+        header: headers,
+        extraData: extraData,
+        expectDataType: http.HttpDataType.STRING,
+        connectTimeout: Constants.REQUEST_TIMEOUT,
+        readTimeout: Constants.REQUEST_TIMEOUT,
+      })
+      if (response.responseCode !== 200) {
+        throw new Error(`HTTP ${response.responseCode}`)
+      }
+      return response.result as string
+    } finally {
+      request.destroy()
+    }
+  }
+
+  /** GET 请求，返回原始字符串（用于非 JSON 端点如 getMaxCaseNumber） */
+  async getRaw(port: number, path: string, params?: HttpParams): Promise<string> {
+    const qs: string = params ? this.buildQueryString(params) : ''
+    const url: string = `${this.baseUrl(port)}${path}${qs}`
+    const headers: Object = this.buildHeaders()
+    return this.makeRawRequest(http.RequestMethod.GET, url, headers)
+  }
+
+  /** POST 请求，返回原始字符串（用于非 JSON 端点如 addRegister） */
+  async postRaw(port: number, path: string, body?: HttpParams): Promise<string> {
+    const url: string = `${this.baseUrl(port)}${path}`
+    const headers: Object = this.buildHeaders()
+    const extraData: string | undefined = body ? this.toUrlEncoded(body) : undefined
+    return this.makeRawRequest(http.RequestMethod.POST, url, headers, extraData)
   }
 }
