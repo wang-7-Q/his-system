@@ -14,40 +14,53 @@ struct TranHistoryPage {
 
   private columns: ColumnConfig[] = [
     { key: 'patient_name', title: '患者姓名', width: 100 },
-    { key: 'drug_name', title: '药品名称', width: 130 },
-    { key: 'quantity', title: '数量', width: 60 },
-    { key: 'price', title: '金额', width: 70 },
+    { key: 'case_number', title: '病历号', width: 100 },
+    { key: 'dept_name', title: '科室', width: 100 },
     { key: 'status', title: '状态', width: 70 },
-    { key: 'date', title: '日期', width: 100 },
   ]
 
   private searchFields: SearchField[] = [
     { key: 'keyword', label: '关键词', type: 'text', placeholder: '患者姓名/病历号' },
   ]
 
-  aboutToAppear(): void { this.search() }
+  aboutToAppear(): void { this.search(1) }
 
-  private async search(page: number = 1): Promise<void> {
+  private async search(page: number = 1, keyword: string = ''): Promise<void> {
     this.loading = true
     try {
       const params: HttpParams = new HttpParams()
       params.add('nowPageNumber', page.toString())
       params.add('pageSize', this.pageInfo.size.toString())
+      if (keyword) {
+        params.add('case_number', keyword)
+      }
+      // Use getFinishPricePatient to list patients with completed payment
       const result = await DrugstoreService.getFinishPricePatient(params)
       if (result.list) {
         this.tableData = result.list as Object[]
-        this.pageInfo.total = result.totalCount; this.pageInfo.page = page
+        this.pageInfo.total = result.totalCount
+        this.pageInfo.page = page
       }
-    } catch (_e) { promptAction.showToast({ message: '查询交易记录失败', duration: 2000 }) }
-    finally { this.loading = false }
+    } catch (_e) {
+      promptAction.showToast({ message: '查询交易记录失败', duration: 2000 })
+    } finally {
+      this.loading = false
+    }
   }
 
   build() {
     Column() {
-      PageHeader({ title: '交易记录' })
-      SearchForm({ fields: this.searchFields, onSearch: () => this.search(1), onReset: () => this.search(1) })
+      PageHeader({ title: '发药记录' })
+      SearchForm({
+        fields: this.searchFields,
+        onSearch: (values: Record<string, string>) => this.search(1, values['keyword'] || ''),
+        onReset: () => this.search(1)
+      })
       DataTable({ columns: this.columns, data: this.tableData, loading: this.loading })
-      PaginationBar({ pageInfo: this.pageInfo, onChange: (p: number, s: number) => { this.pageInfo.size = s; this.search(p) } })
+      PaginationBar({
+        pageInfo: this.pageInfo,
+        onChange: (p: number, s: number) => { this.pageInfo.size = s; this.search(p) }
+      })
     }
     .width('100%').height('100%').padding(16).backgroundColor('#F0F2F5')
   }

@@ -12,6 +12,11 @@ struct WritePrescriptionPage {
   @Local drugSelectorVisible: boolean = false
   @Local loading: boolean = false
 
+  aboutToAppear(): void {
+    const cached: string | undefined = AppStorage.get<string>('currentRegistId')
+    if (cached) { this.registId = cached }
+  }
+
   private onDrugSelected(drug: Drug): void {
     const pd: PrescriptionDrug = {
       drug_id: drug.id,

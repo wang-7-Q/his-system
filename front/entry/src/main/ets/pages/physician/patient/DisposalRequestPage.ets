@@ -20,6 +20,8 @@ struct DisposalRequestPage {
   @Local loading: boolean = false
 
   aboutToAppear(): void {
+    const cached: string | undefined = AppStorage.get<string>('currentRegistId')
+    if (cached) { this.registId = cached }
     this.loadItems()
   }
 

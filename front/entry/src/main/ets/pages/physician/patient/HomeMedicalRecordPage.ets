@@ -17,6 +17,8 @@ struct HomeMedicalRecordPage {
   @Local diseaseData: Object[] = []
 
   aboutToAppear(): void {
+    const cached: string | undefined = AppStorage.get<string>('currentRegistId')
+    if (cached) { this.registId = cached }
     this.loadDiseases()
   }
 

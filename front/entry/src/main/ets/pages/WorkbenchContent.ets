@@ -171,7 +171,7 @@ struct WorkbenchContent {
     // ── Physician (门诊医生) ──
     if (name === '门诊') {
       NavDestination() {
-        PhysicianPatientPage()
+        PhysicianPatientPage({ navStack: this.workbenchStack })
       }
       .hideTitleBar(true)
     } else if (name === 'PhysicianHistoryPage') {

@@ -9,6 +9,11 @@ struct OutpatientDiagnosisPage {
   @Local diagnosis: string = ''
   @Local loading: boolean = false
 
+  aboutToAppear(): void {
+    const cached: string | undefined = AppStorage.get<string>('currentRegistId')
+    if (cached) { this.registId = cached }
+  }
+
   private async onSubmit(): Promise<void> {
     if (!this.registId || !this.diagnosis) {
       promptAction.showToast({ message: '请填写挂号ID和诊断结果', duration: 2000 })

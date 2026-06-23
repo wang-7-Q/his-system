@@ -16,6 +16,11 @@ struct InspectionResultsPage {
     { key: 'status', title: '状态', width: 70 },
   ]
 
+  aboutToAppear(): void {
+    const cached: string | undefined = AppStorage.get<string>('currentRegistId')
+    if (cached) { this.registId = cached }
+  }
+
   private async loadResults(): Promise<void> {
     if (!this.registId) {
       promptAction.showToast({ message: '请输入挂号ID', duration: 2000 })

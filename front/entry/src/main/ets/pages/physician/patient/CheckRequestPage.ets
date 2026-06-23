@@ -23,6 +23,8 @@ struct CheckRequestPage {
   @Local selectedItemId: string = ''
 
   aboutToAppear(): void {
+    const cached: string | undefined = AppStorage.get<string>('currentRegistId')
+    if (cached) { this.registId = cached }
     this.loadCheckItems()
   }
 

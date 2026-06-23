@@ -48,6 +48,24 @@ struct GiveMedicinePage {
     } catch (_e) { promptAction.showToast({ message: '加载药品失败', duration: 2000 }) }
   }
 
+  private buildDrugMessage(): string {
+    if (this.drugData.length === 0) {
+      return '未找到该患者的待发药品记录。'
+    }
+    let msg: string = '确定发放以下药品吗？\n\n'
+    for (let i = 0; i < this.drugData.length; i++) {
+      const d: Object = this.drugData[i]
+      const name: string = getStringField(d, 'drug_name')
+      const num: string = getStringField(d, 'drug_number') || '1'
+      const usage: string = getStringField(d, 'drug_usage') || ''
+      msg += (i + 1) + '. ' + name + ' ×' + num
+      if (usage) { msg += ' (' + usage + ')' }
+      msg += '\n'
+    }
+    msg += '\n共 ' + this.drugData.length + ' 种药品'
+    return msg
+  }
+
   private async doGive(): Promise<void> {
     if (!this.selectedRow) { return }
     const registId: string = getStringField(this.selectedRow as Object, 'regist_id')
@@ -76,7 +94,7 @@ struct GiveMedicinePage {
 
       ConfirmDialog({
         visible: this.confirmVisible, title: '确认发药',
-        message: '确定发放药品吗？共 ' + this.drugData.length + ' 种药品。',
+        message: this.buildDrugMessage(),
         onConfirm: () => this.doGive(),
         onCancel: () => this.confirmVisible = false,
       })

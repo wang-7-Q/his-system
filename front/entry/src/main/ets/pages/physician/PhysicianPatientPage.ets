@@ -15,6 +15,7 @@ struct PhysicianPatientPage {
   @Local pageInfo: PageInfo = { page: 1, size: 10, total: 0 }
   @Local waitCount: number = 0
   @Local finishCount: number = 0
+  @Param navStack: NavPathStack = new NavPathStack()
 
   private columns: ColumnConfig[] = [
     { key: 'case_number', title: '病历号', width: 100 },
@@ -63,12 +64,15 @@ struct PhysicianPatientPage {
     }
   }
 
-  private async treatPatient(row: Object): Promise<void> {
+  private async startConsultation(row: Object): Promise<void> {
     const registId: string = String((row as Record<string, Object>)['regist_id'] || '')
     try {
       const result = await PhysicianService.treatPatient(registId)
       if (result.status === 1) {
-        promptAction.showToast({ message: '开始看诊', duration: 2000 })
+        // Store registId for sub-pages to auto-fill
+        AppStorage.setOrCreate('currentRegistId', registId)
+        // Navigate to medical record page
+        this.navStack.pushPath({ name: 'HomeMedicalRecordPage' })
       }
     } catch (_e) {
       promptAction.showToast({ message: '看诊操作失败', duration: 2000 })
@@ -79,7 +83,7 @@ struct PhysicianPatientPage {
   actionButtons(row: Object) {
     Button('看诊').fontSize(12).height(28)
       .backgroundColor('#409EFF').fontColor('#FFFFFF')
-      .onClick(() => this.treatPatient(row))
+      .onClick(() => this.startConsultation(row))
   }
 
   build() {

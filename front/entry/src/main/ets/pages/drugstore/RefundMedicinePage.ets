@@ -34,7 +34,7 @@ struct RefundMedicinePage {
     try {
       const params: HttpParams = new HttpParams()
       const result = await DrugstoreService.getGivePricePatient(params)
-      if (result.list) { this.tableData = result.list as Object as Object[] }
+      if (result.list) { this.tableData = result.list as Object[] }
     } catch (_e) { promptAction.showToast({ message: '加载退药列表失败', duration: 2000 }) }
     finally { this.loading = false }
   }
@@ -43,8 +43,23 @@ struct RefundMedicinePage {
     const registId: string = getStringField(row, 'regist_id')
     try {
       const result = await DrugstoreService.getGivePatientDrug(registId)
-      if (result.list) { this.drugData = result.list as Object as Object[] }
+      if (result.list) { this.drugData = result.list as Object[] }
     } catch (_e) { promptAction.showToast({ message: '加载药品失败', duration: 2000 }) }
+  }
+
+  private buildDrugMessage(): string {
+    if (this.drugData.length === 0) {
+      return '未找到该患者的已发药品记录。'
+    }
+    let msg: string = '确定要退回以下药品吗？\n\n'
+    for (let i = 0; i < this.drugData.length; i++) {
+      const d: Object = this.drugData[i]
+      const name: string = getStringField(d, 'drug_name')
+      const num: string = getStringField(d, 'drug_number') || '1'
+      msg += (i + 1) + '. ' + name + ' ×' + num + '\n'
+    }
+    msg += '\n共 ' + this.drugData.length + ' 种药品\n此操作不可撤销。'
+    return msg
   }
 
   private async doRefund(): Promise<void> {
@@ -75,7 +90,7 @@ struct RefundMedicinePage {
 
       ConfirmDialog({
         visible: this.confirmVisible, title: '确认退药', danger: true,
-        message: '确定要退回所有药品吗？此操作不可撤销。',
+        message: this.buildDrugMessage(),
         onConfirm: () => this.doRefund(),
         onCancel: () => this.confirmVisible = false,
       })
