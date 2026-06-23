@@ -137,7 +137,7 @@ struct HomePage {
   buildModuleNav(tab: TabConfig) {
     if (tab.type === '挂号') {
       Navigation(this.regStack) {
-        OnsiteRegistrationPage()
+        OnsiteRegistrationPage({ navStack: this.regStack })
       }
       .navDestination(this.regRouterMap)
       .mode(NavigationMode.Stack)
