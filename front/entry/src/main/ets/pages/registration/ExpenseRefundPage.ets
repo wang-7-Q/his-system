@@ -261,16 +261,14 @@ struct ExpenseRefundPage {
 
           // 搜索区
           Row() {
-            TextInput({ placeholder: '请输入病历号' })
-              .value(this.caseNumber)
+            TextInput({ text: this.caseNumber, placeholder: '请输入病历号' })
               .onChange((v: string) => { this.caseNumber = v })
               .fontSize(13)
               .height(36)
               .layoutWeight(1)
               .margin({ right: 12 })
 
-            TextInput({ placeholder: '请输入患者名' })
-              .value(this.realName)
+            TextInput({ text: this.realName, placeholder: '请输入患者名' })
               .onChange((v: string) => { this.realName = v })
               .fontSize(13)
               .height(36)

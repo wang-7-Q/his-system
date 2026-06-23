@@ -7,7 +7,7 @@ import { HttpParams } from '../../services/ApiClient'
 import { PageHeader } from '../../components/PageHeader'
 import { RegistrationService } from '../../services/RegistrationService'
 import { PageInfo, PaginationBar } from '../../components/PaginationBar'
-import { RegistLevel, Department, Doctor, SettleCategory } from '../../models/Registration'
+import { RegistLevel, Department, Doctor, SettleCategory, Registration } from '../../models/Registration'
 import { RestBean } from '../../models/RestBean'
 import { ColumnConfig, DataTable } from '../../components/DataTable'
 import { promptAction } from '@kit.ArkUI'
@@ -402,7 +402,6 @@ struct OnsiteRegistrationPage {
         .selected(this.noon === '上午' ? 0 : 1)
         .width(80)
         .height(28)
-        .fontSize(12)
         .onSelect((index: number) => {
           this.noon = index === 0 ? '上午' : '下午'
           this.loadList()
@@ -455,7 +454,6 @@ struct OnsiteRegistrationPage {
       Select(options)
         .layoutWeight(1)
         .height(34)
-        .fontSize(13)
         .selected(this.findSelectedIndex(options, selected))
         .onSelect((index: number) => onChange(options[index].value))
     }

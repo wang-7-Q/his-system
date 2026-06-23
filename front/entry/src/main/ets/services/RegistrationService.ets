@@ -97,7 +97,7 @@ export class RegistrationService {
     // 后端 searchExpenseChargePatient 返回 Map<String,Object>，不是 RestBean
     return RegistrationService.api.get<RestBeanMap>(
       PORT, '/searchExpenseChargePatient', params
-    ) as Promise<RestBeanMap>
+    ) as unknown as Promise<RestBeanMap>
   }
 
   /** 收费结算 — POST JSON body: List<Map> */
@@ -114,7 +114,7 @@ export class RegistrationService {
     if (realName) { params.add('real_name', realName) }
     return RegistrationService.api.get<RestBeanMap>(
       PORT, '/searchExpenseRefundPatient', params
-    ) as Promise<RestBeanMap>
+    ) as unknown as Promise<RestBeanMap>
   }
 
   /** 退费结算 — POST JSON body: List<Map> */

@@ -1,4 +1,3 @@
-import { RestBean } from '../../models/RestBean'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
 import { PageHeader } from '../../components/PageHeader'
 import { RegistrationService } from '../../services/RegistrationService'
@@ -32,9 +31,9 @@ struct RegistrationRecordPage {
   private async loadList(): Promise<void> {
     this.loading = true
     try {
-      const result: RestBean<Object> = await RegistrationService.getRecordRefundPatient(
+      const result = await RegistrationService.getRecordRefundPatient(
         this.searchCaseNumber, this.searchRealName, this.pageInfo.page, this.pageInfo.size
-      ) as Promise<RestBean<Object>>
+      )
       if (result.list) {
         this.tableData = result.list as Object[]
         this.pageInfo.total = result.totalCount
@@ -90,16 +89,14 @@ struct RegistrationRecordPage {
 
         // 搜索区
         Row() {
-          TextInput({ placeholder: '请输入病历号' })
-            .value(this.searchCaseNumber)
+          TextInput({ text: this.searchCaseNumber, placeholder: '请输入病历号' })
             .onChange((v: string) => { this.searchCaseNumber = v })
             .fontSize(13)
             .height(36)
             .layoutWeight(1)
             .margin({ right: 12 })
 
-          TextInput({ placeholder: '请输入患者名' })
-            .value(this.searchRealName)
+          TextInput({ text: this.searchRealName, placeholder: '请输入患者名' })
             .onChange((v: string) => { this.searchRealName = v })
             .fontSize(13)
             .height(36)
