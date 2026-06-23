@@ -1,7 +1,10 @@
+import { hilog } from '@kit.PerformanceAnalysisKit'
 import { HttpParams } from '../../../services/ApiClient'
 import { PageHeader } from '../../../components/PageHeader'
 import { PhysicianService } from '../../../services/PhysicianService'
 import { promptAction } from '@kit.ArkUI'
+
+const DOMAIN = 0x0000
 
 @ComponentV2
 struct HomeMedicalRecordPage {
@@ -25,7 +28,9 @@ struct HomeMedicalRecordPage {
       if (result.list) {
         this.diseaseData = result.list as Object[]
       }
-    } catch (_e) { /* optional */ }
+    } catch (e) {
+      hilog.error(DOMAIN, 'HomeMedicalRecord', 'Failed to load diseases: %{public}s', JSON.stringify(e))
+    }
   }
 
   private async onSubmit(): Promise<void> {

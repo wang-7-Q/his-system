@@ -9,7 +9,7 @@ struct CheckResultsPage {
   @Local loading: boolean = false
   @Local registId: string = ''
 
-  private columns: ColumnConfig<Object>[] = [
+  private columns: ColumnConfig[] = [
     { key: 'item_name', title: '检查项目', width: 120 },
     { key: 'result', title: '检查结果', width: 160 },
     { key: 'doctor_name', title: '检查医生', width: 80 },

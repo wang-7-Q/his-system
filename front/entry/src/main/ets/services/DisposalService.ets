@@ -45,8 +45,8 @@ export class DisposalService {
     return DisposalService.api.get<DisposalItem>(8092, '/getPatientItemByDisposal', params)
   }
 
-  static async updataDisposalPatient(data: HttpParams): Promise<RestBean<void>> {
-    return DisposalService.api.post<void>(8092, '/updataDisposalPatient', data)
+  static async updateDisposalPatient(data: HttpParams): Promise<RestBean<void>> {
+    return DisposalService.api.post<void>(8092, '/updateDisposalPatient', data)
   }
 
   static async getDisposalPatient(): Promise<RestBean<DisposalItem>> {

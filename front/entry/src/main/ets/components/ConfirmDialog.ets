@@ -6,8 +6,8 @@ export struct ConfirmDialog {
   @Param confirmText: string = '确定'
   @Param cancelText: string = '取消'
   @Param danger: boolean = false
-  @Event onConfirm?: () => void
-  @Event onCancel?: () => void
+  @Event onConfirm: () => void = () => {}
+  @Event onCancel: () => void = () => {}
 
   build() {
     if (this.visible) {
@@ -16,7 +16,7 @@ export struct ConfirmDialog {
           .width('100%')
           .height('100%')
           .backgroundColor('rgba(0,0,0,0.4)')
-          .onClick(() => this.onCancel?.())
+          .onClick(() => this.onCancel())
 
         Column() {
           Text(this.title)
@@ -32,13 +32,13 @@ export struct ConfirmDialog {
               .backgroundColor('#F5F5F5')
               .fontColor('#606266')
               .layoutWeight(1)
-              .onClick(() => this.onCancel?.())
+              .onClick(() => this.onCancel())
             Blank().width(12)
             Button(this.confirmText)
               .backgroundColor(this.danger ? '#F56C6C' : '#409EFF')
               .fontColor('#FFFFFF')
               .layoutWeight(1)
-              .onClick(() => this.onConfirm?.())
+              .onClick(() => this.onConfirm())
           }
           .width('100%')
         }

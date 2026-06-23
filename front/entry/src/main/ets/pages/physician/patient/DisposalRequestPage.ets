@@ -1,7 +1,16 @@
+import { hilog } from '@kit.PerformanceAnalysisKit'
 import { HttpParams } from '../../../services/ApiClient'
 import { PageHeader } from '../../../components/PageHeader'
 import { PhysicianService } from '../../../services/PhysicianService'
+import { getStringField } from '../../../utils/ObjectAccess'
 import { promptAction } from '@kit.ArkUI'
+
+const DOMAIN = 0x0000
+
+interface PickerOption {
+  label: string
+  value: string
+}
 
 @ComponentV2
 struct DisposalRequestPage {
@@ -22,7 +31,9 @@ struct DisposalRequestPage {
       if (result.list) {
         this.items = result.list as Object[]
       }
-    } catch (_e) { /* optional */ }
+    } catch (e) {
+      hilog.error(DOMAIN, 'DisposalRequest', 'Failed to load items: %{public}s', JSON.stringify(e))
+    }
   }
 
   private async onSubmit(): Promise<void> {
@@ -46,6 +57,19 @@ struct DisposalRequestPage {
     }
   }
 
+  private buildItemOptions(): PickerOption[] {
+    const opts: PickerOption[] = []
+    for (let i = 0; i < this.items.length; i++) {
+      const it: Object = this.items[i]
+      const opt: PickerOption = {
+        value: getStringField(it, 'id'),
+        label: getStringField(it, 'item_name')
+      }
+      opts.push(opt)
+    }
+    return opts
+  }
+
   build() {
     Column() {
       PageHeader({ title: '处置申请' })
@@ -56,18 +80,18 @@ struct DisposalRequestPage {
           .onChange((v: string) => this.registId = v)
 
         Text('选择处置项目').fontSize(14).fontColor('#606266').margin({ bottom: 4 })
-        Select(this.items.map((it: Object) => ({
-          value: String((it as Record<string, Object>)['id'] || ''),
-          label: String((it as Record<string, Object>)['item_name'] || '')
-        })))
+        Select(this.buildItemOptions())
           .width('100%').height(36)
-          .onSelect((i: number) => {
-            this.selectedItemId = String((this.items[i] as Record<string, Object>)['id'] || '')
+          .onSelect((index: number) => {
+            if (index >= 0 && index < this.items.length) {
+              this.selectedItemId = getStringField(this.items[index], 'id')
+            }
           })
 
-        Button('提交申请').width('100%').height(40).fontSize(15).margin({ top: 24 })
+        Button(this.loading ? '提交中...' : '提交申请')
+          .width('100%').height(40).fontSize(15).margin({ top: 24 })
           .backgroundColor('#409EFF').fontColor('#FFFFFF')
-          .loading(this.loading)
+          .enabled(!this.loading)
           .onClick(() => this.onSubmit())
       }
       .padding(16).backgroundColor('#FFFFFF').borderRadius(8)

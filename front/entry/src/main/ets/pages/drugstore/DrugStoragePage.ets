@@ -1,8 +1,9 @@
 import { HttpParams } from '../../services/ApiClient'
 import { DrugstoreService } from '../../services/DrugstoreService'
-import { PageInfo } from '../../components/PaginationBar'
-import { ColumnConfig } from '../../components/DataTable'
-import { SearchField } from '../../components/SearchForm'
+import { PageHeader } from '../../components/PageHeader'
+import { PageInfo, PaginationBar } from '../../components/PaginationBar'
+import { ColumnConfig, DataTable } from '../../components/DataTable'
+import { SearchField, SearchForm } from '../../components/SearchForm'
 import { promptAction } from '@kit.ArkUI'
 
 @ComponentV2
@@ -12,7 +13,7 @@ struct DrugStoragePage {
   @Local pageInfo: PageInfo = { page: 1, size: 10, total: 0 }
   @Local keyword: string = ''
 
-  private columns: ColumnConfig<Object>[] = [
+  private columns: ColumnConfig[] = [
     { key: 'drug_code', title: '药品编码', width: 100 },
     { key: 'drug_name', title: '药品名称', width: 130 },
     { key: 'drug_format', title: '规格', width: 80 },

@@ -8,11 +8,16 @@ export interface PageInfo {
 export struct PaginationBar {
   @Param pageInfo: PageInfo = { page: 1, size: 10, total: 0 }
   @Param pageSizes: number[] = [5, 10, 20, 50]
-  @Event onChange?: (page: number, size: number) => void
+  @Event onChange: (page: number, size: number) => void = (_page: number, _size: number) => {}
 
   @Computed
   get totalPages(): number {
     return Math.ceil(this.pageInfo.total / this.pageInfo.size)
+  }
+
+  private getSizeIndex(size: number): number {
+    const idx: number = this.pageSizes.indexOf(size)
+    return idx >= 0 ? idx : 0
   }
 
   build() {
@@ -31,7 +36,7 @@ export struct PaginationBar {
         .backgroundColor('#F5F5F5')
         .onClick(() => {
           if (this.pageInfo.page > 1) {
-            this.onChange?.(this.pageInfo.page - 1, this.pageInfo.size)
+            this.onChange(this.pageInfo.page - 1, this.pageInfo.size)
           }
         })
 
@@ -47,7 +52,7 @@ export struct PaginationBar {
         .backgroundColor('#F5F5F5')
         .onClick(() => {
           if (this.pageInfo.page < this.totalPages) {
-            this.onChange?.(this.pageInfo.page + 1, this.pageInfo.size)
+            this.onChange(this.pageInfo.page + 1, this.pageInfo.size)
           }
         })
 
@@ -56,12 +61,12 @@ export struct PaginationBar {
       Row() {
         Text('每页 ').fontSize(13).fontColor('#909399')
         Select([{ value: '5' }, { value: '10' }, { value: '20' }, { value: '50' }])
-          .selected(String(this.pageInfo.size))
+          .selected(this.getSizeIndex(this.pageInfo.size))
           .width(70)
           .height(32)
           .onSelect((index: number) => {
             const newSize: number = this.pageSizes[index]
-            this.onChange?.(1, newSize)
+            this.onChange(1, newSize)
           })
         Text(' 条').fontSize(13).fontColor('#909399')
       }

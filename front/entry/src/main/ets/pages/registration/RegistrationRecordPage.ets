@@ -13,7 +13,7 @@ struct RegistrationRecordPage {
   @Local confirmVisible: boolean = false
   @Local selectedRow: Object | null = null
 
-  private columns: ColumnConfig<Object>[] = [
+  private columns: ColumnConfig[] = [
     { key: 'case_number', title: '病历号', width: 100 },
     { key: 'patient_name', title: '姓名', width: 80 },
     { key: 'dept_name', title: '科室', width: 100 },
@@ -71,26 +71,30 @@ struct RegistrationRecordPage {
   }
 
   build() {
-    Column() {
-      PageHeader({ title: '窗口退号' })
-      DataTable({
-        columns: this.columns,
-        data: this.tableData,
-        loading: this.loading,
-        actionColumn: (row: Object) => { this.actionButtons(row) }
+    Stack() {
+      Column() {
+        PageHeader({ title: '窗口退号' })
+        DataTable({
+          columns: this.columns,
+          data: this.tableData,
+          loading: this.loading,
+          showActionColumn: true,
+          actionColumn: (row: Object) => { this.actionButtons(row) }
+        })
+      }
+      .width('100%').height('100%')
+      .padding(16).backgroundColor('#F0F2F5')
+
+      ConfirmDialog({
+        visible: this.confirmVisible,
+        title: '确认退号',
+        message: '确定要退号吗？此操作不可撤销。',
+        danger: true,
+        onConfirm: () => this.doRefund(),
+        onCancel: () => this.confirmVisible = false,
       })
     }
     .width('100%').height('100%')
-    .padding(16).backgroundColor('#F0F2F5')
-
-    ConfirmDialog({
-      visible: this.confirmVisible,
-      title: '确认退号',
-      message: '确定要退号吗？此操作不可撤销。',
-      danger: true,
-      onConfirm: () => this.doRefund(),
-      onCancel: () => this.confirmVisible = false,
-    })
   }
 }
 

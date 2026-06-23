@@ -1,10 +1,15 @@
+interface GeneratedTypeLiteralInterface_1 {
+  label: string;
+  value: string;
+}
+
 export interface FormField {
   key: string
   label: string
   type: 'text' | 'select' | 'date' | 'number'
   required?: boolean
   placeholder?: string
-  options?: { label: string, value: string }[]
+  options?: GeneratedTypeLiteralInterface_1[]
 }
 
 @ComponentV2
@@ -13,13 +18,28 @@ export struct FormDialog {
   @Param title: string = '表单'
   @Param fields: FormField[] = []
   @Param loading: boolean = false
-  @Event onSubmit?: (values: Record<string, string>) => void
-  @Event onCancel?: () => void
+  @Event onSubmit: (values: Record<string, string>) => void = (_values: Record<string, string>) => {}
+  @Event onCancel: () => void = () => {}
   @Local formValues: Record<string, string> = {}
   @Local errors: Record<string, string> = {}
 
   aboutToAppear(): void {
     this.initForm()
+  }
+
+  private buildSelectOptions(field: FormField): GeneratedTypeLiteralInterface_1[] {
+    if (!field.options) {
+      return []
+    }
+    const result: GeneratedTypeLiteralInterface_1[] = []
+    for (let i = 0; i < field.options.length; i++) {
+      const opt: GeneratedTypeLiteralInterface_1 = {
+        value: field.options[i].value,
+        label: field.options[i].label
+      }
+      result.push(opt)
+    }
+    return result
   }
 
   private initForm(): void {
@@ -40,7 +60,7 @@ export struct FormDialog {
           .width('100%')
           .height('100%')
           .backgroundColor('rgba(0,0,0,0.4)')
-          .onClick(() => this.onCancel?.())
+          .onClick(() => this.onCancel())
 
         Column() {
           Text(this.title)
@@ -65,7 +85,7 @@ export struct FormDialog {
                         .type(field.type === 'number' ? InputType.Number : InputType.Normal)
                         .onChange((value: string) => this.formValues[field.key] = value)
                     } else if (field.type === 'select' && field.options) {
-                      Select(field.options.map(o => ({ value: o.value, label: o.label })))
+                      Select(this.buildSelectOptions(field))
                         .layoutWeight(1)
                         .height(36)
                         .onSelect((index: number) => {
@@ -75,11 +95,12 @@ export struct FormDialog {
                       DatePicker()
                         .layoutWeight(1)
                         .height(36)
-                        .onChange((value: Date) => {
+                        .onChange((value: DatePickerResult) => {
+                          const year: number = value.year || 2024
+                          const month: number = (value.month || 0) + 1
+                          const day: number = value.day || 1
                           this.formValues[field.key] =
-                            value.getFullYear() + '-' +
-                            String(value.getMonth() + 1).padStart(2, '0') + '-' +
-                            String(value.getDate()).padStart(2, '0')
+                            `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
                         })
                     }
                   }
@@ -101,19 +122,19 @@ export struct FormDialog {
               .backgroundColor('#F5F5F5')
               .fontColor('#606266')
               .layoutWeight(1)
-              .onClick(() => this.onCancel?.())
+              .onClick(() => this.onCancel())
             Blank().width(12)
-            Button('确定')
+            Button(this.loading ? '提交中...' : '确定')
               .backgroundColor('#409EFF')
               .fontColor('#FFFFFF')
               .layoutWeight(1)
-              .loading(this.loading)
-              .onClick(() => this.onSubmit?.({...this.formValues}))
+              .enabled(!this.loading)
+              .onClick(() => this.onSubmit(this.formValues))
           }
           .width('100%')
         }
         .width('90%')
-        .maxHeight('80%')
+        .height('80%')
         .padding(24)
         .backgroundColor('#FFFFFF')
         .borderRadius(12)

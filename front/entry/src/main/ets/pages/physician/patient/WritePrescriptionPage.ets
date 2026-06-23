@@ -57,56 +57,60 @@ struct WritePrescriptionPage {
   }
 
   build() {
-    Column() {
-      PageHeader({ title: '开设处方' })
-
+    Stack() {
       Column() {
-        Text('挂号ID').fontSize(14).fontColor('#606266').margin({ bottom: 4 })
-        TextInput({ placeholder: '输入挂号ID' })
-          .width('100%').height(36).fontSize(13).margin({ bottom: 16 })
-          .onChange((v: string) => this.registId = v)
+        PageHeader({ title: '开设处方' })
 
-        Row() {
-          Text('处方药品').fontSize(14).fontColor('#303133').layoutWeight(1)
-          Button('+ 添加药品').fontSize(13).backgroundColor('#67C23A').fontColor('#FFFFFF').height(32)
-            .onClick(() => this.drugSelectorVisible = true)
-        }.margin({ bottom: 8 })
+        Column() {
+          Text('挂号ID').fontSize(14).fontColor('#606266').margin({ bottom: 4 })
+          TextInput({ placeholder: '输入挂号ID' })
+            .width('100%').height(36).fontSize(13).margin({ bottom: 16 })
+            .onChange((v: string) => this.registId = v)
 
-        List() {
-          ForEach(this.selectedDrugs, (drug: PrescriptionDrug, index: number) => {
-            ListItem() {
-              Row() {
-                Text(drug.drug_name).fontSize(13).layoutWeight(1)
-                Text('x' + drug.quantity).fontSize(13).margin({ right: 8 })
-                Text(drug.usage_method).fontSize(13).margin({ right: 8 })
-                Button('删除').fontSize(11).height(24).backgroundColor('#F56C6C').fontColor('#FFFFFF')
-                  .onClick(() => {
-                    const updated: PrescriptionDrug[] = [...this.selectedDrugs]
-                    updated.splice(index, 1)
-                    this.selectedDrugs = updated
-                  })
-              }.width('100%').padding(8)
-              .border({ width: { bottom: 1 }, color: '#EBEEF5' })
-            }
-          }, (_drug: PrescriptionDrug, index: number) => String(index))
+          Row() {
+            Text('处方药品').fontSize(14).fontColor('#303133').layoutWeight(1)
+            Button('+ 添加药品').fontSize(13).backgroundColor('#67C23A').fontColor('#FFFFFF').height(32)
+              .onClick(() => this.drugSelectorVisible = true)
+          }.margin({ bottom: 8 })
+
+          List() {
+            ForEach(this.selectedDrugs, (drug: PrescriptionDrug, index: number) => {
+              ListItem() {
+                Row() {
+                  Text(drug.drug_name).fontSize(13).layoutWeight(1)
+                  Text('x' + drug.quantity).fontSize(13).margin({ right: 8 })
+                  Text(drug.usage_method).fontSize(13).margin({ right: 8 })
+                  Button('删除').fontSize(11).height(24).backgroundColor('#F56C6C').fontColor('#FFFFFF')
+                    .onClick(() => {
+                      const updated: PrescriptionDrug[] = [...this.selectedDrugs]
+                      updated.splice(index, 1)
+                      this.selectedDrugs = updated
+                    })
+                }.width('100%').padding(8)
+                .border({ width: { bottom: 1 }, color: '#EBEEF5' })
+              }
+            }, (_drug: PrescriptionDrug, index: number) => String(index))
+          }
+          .backgroundColor('#FAFAFA').borderRadius(4).constraintSize({ maxHeight: 200 }).margin({ bottom: 16 })
+
+          Button(this.loading ? '提交中...' : '提交处方')
+            .width('100%').height(40).fontSize(15)
+            .backgroundColor('#409EFF').fontColor('#FFFFFF')
+            .enabled(!this.loading)
+            .onClick(() => this.onSubmit())
         }
-        .backgroundColor('#FAFAFA').borderRadius(4).maxHeight(200).margin({ bottom: 16 })
-
-        Button('提交处方').width('100%').height(40).fontSize(15)
-          .backgroundColor('#409EFF').fontColor('#FFFFFF')
-          .loading(this.loading)
-          .onClick(() => this.onSubmit())
+        .padding(16).backgroundColor('#FFFFFF').borderRadius(8)
       }
-      .padding(16).backgroundColor('#FFFFFF').borderRadius(8)
+      .width('100%').height('100%')
+      .padding(16).backgroundColor('#F0F2F5')
+
+      DrugSelector({
+        visible: this.drugSelectorVisible,
+        onSelect: (drug: Drug) => this.onDrugSelected(drug),
+        onCancel: () => this.drugSelectorVisible = false,
+      })
     }
     .width('100%').height('100%')
-    .padding(16).backgroundColor('#F0F2F5')
-
-    DrugSelector({
-      visible: this.drugSelectorVisible,
-      onSelect: (drug: Drug) => this.onDrugSelected(drug),
-      onCancel: () => this.drugSelectorVisible = false,
-    })
   }
 }
 

@@ -1,7 +1,12 @@
+import { hilog } from '@kit.PerformanceAnalysisKit'
 import { CheckService } from '../../services/CheckService'
-import { PageInfo } from '../../components/PaginationBar'
-import { ColumnConfig } from '../../components/DataTable'
+import { PageHeader } from '../../components/PageHeader'
+import { PageInfo, PaginationBar } from '../../components/PaginationBar'
+import { ColumnConfig, DataTable } from '../../components/DataTable'
+import { getNumberField } from '../../utils/ObjectAccess'
 import { promptAction } from '@kit.ArkUI'
+
+const DOMAIN = 0x0000
 
 @ComponentV2
 struct CheckApplyPage {
@@ -11,7 +16,7 @@ struct CheckApplyPage {
   @Local waitCount: number = 0
   @Local finishCount: number = 0
 
-  private columns: ColumnConfig<Object>[] = [
+  private columns: ColumnConfig[] = [
     { key: 'patient_name', title: '患者姓名', width: 100 },
     { key: 'item_name', title: '检查项目', width: 130 },
     { key: 'dept_name', title: '科室', width: 100 },
@@ -25,17 +30,21 @@ struct CheckApplyPage {
 
   private async loadCounts(): Promise<void> {
     try {
-      const [wait, finish] = await Promise.all([
+      const results = await Promise.all([
         CheckService.getWaitCheckCount(),
         CheckService.getFinishCheckCount(),
       ])
+      const wait = results[0]
+      const finish = results[1]
       if (wait.list && wait.list.length > 0) {
-        this.waitCount = Number((wait.list[0] as Record<string, Object>)['count'] || 0)
+        this.waitCount = getNumberField(wait.list[0] as Object, 'count')
       }
       if (finish.list && finish.list.length > 0) {
-        this.finishCount = Number((finish.list[0] as Record<string, Object>)['count'] || 0)
+        this.finishCount = getNumberField(finish.list[0] as Object, 'count')
       }
-    } catch (_e) { /* optional */ }
+    } catch (e) {
+      hilog.error(DOMAIN, 'CheckApply', 'Failed to load counts: %{public}s', JSON.stringify(e))
+    }
   }
 
   private async loadList(): Promise<void> {

@@ -32,6 +32,12 @@
         "name": "ohos.permission.INTERNET",
         "reason": "$string:internet_permission_reason"
       }
+    ],
+    "metadata": [
+      {
+        "name": "network_cleartext_permissions",
+        "value": "true"
+      }
     ]
   }
 }

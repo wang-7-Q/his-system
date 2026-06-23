@@ -1,8 +1,12 @@
+import { hilog } from '@kit.PerformanceAnalysisKit'
 import { PageHeader } from '../../components/PageHeader'
 import { PhysicianService } from '../../services/PhysicianService'
 import { PageInfo, PaginationBar } from '../../components/PaginationBar'
 import { ColumnConfig, DataTable } from '../../components/DataTable'
+import { getNumberField } from '../../utils/ObjectAccess'
 import { promptAction } from '@kit.ArkUI'
+
+const DOMAIN = 0x0000
 
 @ComponentV2
 struct PhysicianPatientPage {
@@ -12,7 +16,7 @@ struct PhysicianPatientPage {
   @Local waitCount: number = 0
   @Local finishCount: number = 0
 
-  private columns: ColumnConfig<Object>[] = [
+  private columns: ColumnConfig[] = [
     { key: 'case_number', title: '病历号', width: 100 },
     { key: 'patient_name', title: '姓名', width: 80 },
     { key: 'dept_name', title: '科室', width: 100 },
@@ -27,17 +31,21 @@ struct PhysicianPatientPage {
 
   private async loadCounts(): Promise<void> {
     try {
-      const [wait, finish] = await Promise.all([
+      const results = await Promise.all([
         PhysicianService.getWaitPatientCount(),
         PhysicianService.getFinishPatientCount(),
       ])
+      const wait = results[0]
+      const finish = results[1]
       if (wait.list && wait.list.length > 0) {
-        this.waitCount = Number((wait.list[0] as Record<string, Object>)['count'] || 0)
+        this.waitCount = getNumberField(wait.list[0] as Object, 'count')
       }
       if (finish.list && finish.list.length > 0) {
-        this.finishCount = Number((finish.list[0] as Record<string, Object>)['count'] || 0)
+        this.finishCount = getNumberField(finish.list[0] as Object, 'count')
       }
-    } catch (_e) { /* counts are optional */ }
+    } catch (e) {
+      hilog.error(DOMAIN, 'PhysicianPatient', 'Failed to load counts: %{public}s', JSON.stringify(e))
+    }
   }
 
   private async loadList(): Promise<void> {
@@ -87,6 +95,7 @@ struct PhysicianPatientPage {
         columns: this.columns,
         data: this.tableData,
         loading: this.loading,
+        showActionColumn: true,
         actionColumn: (row: Object) => { this.actionButtons(row) }
       })
     }

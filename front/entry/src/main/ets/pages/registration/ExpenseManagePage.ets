@@ -13,7 +13,7 @@ struct ExpenseManagePage {
   @Local pageInfo: PageInfo = { page: 1, size: 10, total: 0 }
   @Local searchKeyword: string = ''
 
-  private columns: ColumnConfig<Object>[] = [
+  private columns: ColumnConfig[] = [
     { key: 'case_number', title: '病历号', width: 100 },
     { key: 'patient_name', title: '患者姓名', width: 100 },
     { key: 'item_name', title: '项目名称', width: 120 },

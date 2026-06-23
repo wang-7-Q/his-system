@@ -2,14 +2,12 @@
 export struct EmptyState {
   @Param text: string = '暂无数据'
   @Param showRetry: boolean = false
-  @Event onRetry?: () => void
+  @Event onRetry: () => void = () => {}
 
   build() {
     Column() {
-      Image($r('sys.symbol.tray'))
-        .width(80)
-        .height(80)
-        .fillColor('#C0C4CC')
+      Text('📭')
+        .fontSize(48)
         .margin({ bottom: 16 })
       Text(this.text)
         .fontSize(14)
@@ -20,7 +18,7 @@ export struct EmptyState {
           .fontSize(13)
           .backgroundColor('#409EFF')
           .fontColor('#FFFFFF')
-          .onClick(() => this.onRetry?.())
+          .onClick(() => this.onRetry())
       }
     }
     .justifyContent(FlexAlign.Center)

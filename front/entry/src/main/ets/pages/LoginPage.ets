@@ -6,7 +6,7 @@ struct LoginPage {
   @Local password: string = ''
   @Local loading: boolean = false
   @Local errorMsg: string = ''
-  @Event onLoginSuccess?: () => void
+  @Event onLoginSuccess: () => void = () => {}
 
   private async doLogin(): Promise<void> {
     if (!this.username || !this.password) {
@@ -18,7 +18,7 @@ struct LoginPage {
     try {
       const result = await AuthService.login(this.username, this.password)
       if (result.status === 1) {
-        this.onLoginSuccess?.()
+        this.onLoginSuccess()
       } else {
         this.errorMsg = result.msg || '登录失败，请检查用户名和密码'
       }

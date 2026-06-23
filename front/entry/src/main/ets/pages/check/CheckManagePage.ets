@@ -1,8 +1,9 @@
 import { HttpParams } from '../../services/ApiClient'
 import { CheckService } from '../../services/CheckService'
-import { PageInfo } from '../../components/PaginationBar'
-import { ColumnConfig } from '../../components/DataTable'
-import { SearchField } from '../../components/SearchForm'
+import { PageHeader } from '../../components/PageHeader'
+import { PageInfo, PaginationBar } from '../../components/PaginationBar'
+import { ColumnConfig, DataTable } from '../../components/DataTable'
+import { SearchField, SearchForm } from '../../components/SearchForm'
 import { promptAction } from '@kit.ArkUI'
 
 @ComponentV2
@@ -11,7 +12,7 @@ struct CheckManagePage {
   @Local loading: boolean = false
   @Local pageInfo: PageInfo = { page: 1, size: 10, total: 0 }
 
-  private columns: ColumnConfig<Object>[] = [
+  private columns: ColumnConfig[] = [
     { key: 'patient_name', title: '患者姓名', width: 100 },
     { key: 'item_name', title: '检查项目', width: 130 },
     { key: 'dept_name', title: '科室', width: 100 },

@@ -13,7 +13,7 @@ struct PhysicianHistoryPage {
   @Local pageInfo: PageInfo = { page: 1, size: 10, total: 0 }
   @Local searchParams: Record<string, string> = {}
 
-  private columns: ColumnConfig<Object>[] = [
+  private columns: ColumnConfig[] = [
     { key: 'case_number', title: '病历号', width: 100 },
     { key: 'patient_name', title: '患者姓名', width: 100 },
     { key: 'dept_name', title: '科室', width: 100 },
@@ -38,9 +38,13 @@ struct PhysicianHistoryPage {
       params.add('nowPageNumber', page.toString())
       params.add('pageSize', this.pageInfo.size.toString())
 
-      const keys: string[] = Object.keys(this.searchParams)
-      for (let i = 0; i < keys.length; i++) {
-        params.add(keys[i], this.searchParams[keys[i]])
+      // Iterate over known search field keys to avoid Object.keys()
+      for (let i = 0; i < this.searchFields.length; i++) {
+        const key: string = this.searchFields[i].key
+        const value: string | undefined = this.searchParams[key]
+        if (value) {
+          params.add(key, value)
+        }
       }
 
       const result = await PhysicianService.getCheckedPatient(params)

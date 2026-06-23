@@ -1,7 +1,8 @@
 import { HttpParams } from '../../services/ApiClient'
 import { CheckService } from '../../services/CheckService'
-import { ColumnConfig } from '../../components/DataTable'
+import { ColumnConfig, DataTable } from '../../components/DataTable'
 import { promptAction } from '@kit.ArkUI'
+import { PageHeader } from '../../components/PageHeader'
 
 @ComponentV2
 struct CheckPatientPage {
@@ -13,7 +14,7 @@ struct CheckPatientPage {
   @Local patientName: string = ''
   @Local checkItem: string = ''
 
-  private columns: ColumnConfig<Object>[] = [
+  private columns: ColumnConfig[] = [
     { key: 'patient_name', title: '患者姓名', width: 100 },
     { key: 'item_name', title: '检查项目', width: 130 },
     { key: 'dept_name', title: '科室', width: 100 },
@@ -49,7 +50,7 @@ struct CheckPatientPage {
       params.add('id', this.checkId)
       params.add('patient_name', this.patientName)
       params.add('check_item', this.checkItem)
-      const result = await CheckService.updataCheckPatient(params)
+      const result = await CheckService.updateCheckPatient(params)
       if (result.status === 1) {
         promptAction.showToast({ message: '录入成功', duration: 2000 })
         this.dialogVisible = false
@@ -79,6 +80,7 @@ struct CheckPatientPage {
         columns: this.columns,
         data: this.tableData,
         loading: this.loading,
+        showActionColumn: true,
         actionColumn: (row: Object) => { this.actionButtons(row) }
       })
 
@@ -98,8 +100,8 @@ struct CheckPatientPage {
               Button('取消').backgroundColor('#F5F5F5').fontColor('#606266').layoutWeight(1)
                 .onClick(() => this.dialogVisible = false)
               Blank().width(12)
-              Button('提交').backgroundColor('#409EFF').fontColor('#FFFFFF').layoutWeight(1)
-                .loading(this.formLoading).onClick(() => this.onSubmit())
+              Button(this.formLoading ? '提交中...' : '提交').backgroundColor('#409EFF').fontColor('#FFFFFF').layoutWeight(1)
+                .enabled(!this.formLoading).onClick(() => this.onSubmit())
             }.width('100%')
           }.width('85%').padding(20).backgroundColor('#FFFFFF').borderRadius(12)
         }.width('100%').height('100%')

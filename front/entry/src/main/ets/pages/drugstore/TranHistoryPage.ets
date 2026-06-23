@@ -1,8 +1,9 @@
 import { HttpParams } from '../../services/ApiClient'
-import { CheckService } from '../../services/CheckService'
-import { PageInfo } from '../../components/PaginationBar'
-import { ColumnConfig } from '../../components/DataTable'
-import { SearchField } from '../../components/SearchForm'
+import { DrugstoreService } from '../../services/DrugstoreService'
+import { PageHeader } from '../../components/PageHeader'
+import { PageInfo, PaginationBar } from '../../components/PaginationBar'
+import { ColumnConfig, DataTable } from '../../components/DataTable'
+import { SearchField, SearchForm } from '../../components/SearchForm'
 import { promptAction } from '@kit.ArkUI'
 
 @ComponentV2
@@ -11,7 +12,7 @@ struct TranHistoryPage {
   @Local loading: boolean = false
   @Local pageInfo: PageInfo = { page: 1, size: 10, total: 0 }
 
-  private columns: ColumnConfig<Object>[] = [
+  private columns: ColumnConfig[] = [
     { key: 'patient_name', title: '患者姓名', width: 100 },
     { key: 'drug_name', title: '药品名称', width: 130 },
     { key: 'quantity', title: '数量', width: 60 },
@@ -32,7 +33,7 @@ struct TranHistoryPage {
       const params: HttpParams = new HttpParams()
       params.add('nowPageNumber', page.toString())
       params.add('pageSize', this.pageInfo.size.toString())
-      const result = await CheckService.getPatientQuery(params)
+      const result = await DrugstoreService.getFinishPricePatient(params)
       if (result.list) {
         this.tableData = result.list as Object[]
         this.pageInfo.total = result.totalCount; this.pageInfo.page = page

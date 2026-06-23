@@ -49,8 +49,8 @@ export class CheckService {
     return CheckService.api.get<CheckItem>(8092, '/getPatientItemByCheck', params)
   }
 
-  static async updataCheckPatient(data: HttpParams): Promise<RestBean<void>> {
-    return CheckService.api.post<void>(8092, '/updataCheckPatient', data)
+  static async updateCheckPatient(data: HttpParams): Promise<RestBean<void>> {
+    return CheckService.api.post<void>(8092, '/updateCheckPatient', data)
   }
 
   static async getCheckPatient(): Promise<RestBean<CheckItem>> {

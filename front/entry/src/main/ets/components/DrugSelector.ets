@@ -1,23 +1,22 @@
 import { HttpParams } from '../services/ApiClient'
 import { Drug } from '../models/Drug'
-import { ApiClient } from '../services/ApiClient'
+import { PhysicianService } from '../services/PhysicianService'
 
 @ComponentV2
 export struct DrugSelector {
   @Param visible: boolean = false
-  @Event onSelect?: (drug: Drug) => void
-  @Event onCancel?: () => void
+  @Event onSelect: (drug: Drug) => void = (_drug: Drug) => {}
+  @Event onCancel: () => void = () => {}
   @Local searchKey: string = ''
   @Local drugList: Drug[] = []
   @Local loading: boolean = false
-  private api: ApiClient = ApiClient.getInstance()
 
   private async search(): Promise<void> {
     this.loading = true
     try {
       const params: HttpParams = new HttpParams()
       params.add('keyword', this.searchKey)
-      const result = await this.api.post<Drug>(8092, '/searchDrug', params)
+      const result = await PhysicianService.searchDrug(params)
       if (result.list) {
         this.drugList = result.list
       }
@@ -32,7 +31,7 @@ export struct DrugSelector {
         Column()
           .width('100%').height('100%')
           .backgroundColor('rgba(0,0,0,0.4)')
-          .onClick(() => this.onCancel?.())
+          .onClick(() => this.onCancel())
 
         Column() {
           Text('选择药品').fontSize(18).fontWeight(FontWeight.Bold).margin({ bottom: 12 })
@@ -59,7 +58,7 @@ export struct DrugSelector {
                     Text('¥' + drug.unit_price).fontSize(14).fontColor('#F56C6C').margin({ right: 12 })
                     Text('库存: ' + drug.stock).fontSize(12).fontColor('#909399').margin({ right: 12 })
                     Button('选择').fontSize(12).backgroundColor('#67C23A').fontColor('#FFFFFF').height(28)
-                      .onClick(() => this.onSelect?.(drug))
+                      .onClick(() => this.onSelect(drug))
                   }.width('100%').padding(12)
                   .border({ width: { bottom: 1 }, color: '#EBEEF5' })
                 }

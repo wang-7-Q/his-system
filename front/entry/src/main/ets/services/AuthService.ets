@@ -2,6 +2,9 @@ import { ApiClient, HttpParams } from './ApiClient'
 import { RestBean } from '../models/RestBean'
 import { User } from '../models/User'
 import { StorageUtil } from '../common/StorageUtil'
+import { hilog } from '@kit.PerformanceAnalysisKit'
+
+const DOMAIN = 0x0000
 
 export class AuthService {
   private static api: ApiClient = ApiClient.getInstance()
@@ -21,7 +24,8 @@ export class AuthService {
       await StorageUtil.put('Flag', 'isLogin')
       await StorageUtil.put('loginUser', JSON.stringify(user))
 
-      const sessionToken: string = 'session_' + Date.now().toString() + '_' + user.id.toString()
+      // Generate a simple session token (teaching project - in production use server-provided tokens)
+      const sessionToken: string = 'session_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 10)
       await StorageUtil.put(AuthService.tokenKey, sessionToken)
       AuthService.api.setAuthToken(sessionToken)
 
@@ -57,9 +61,13 @@ export class AuthService {
   }
 
   static async restoreSession(): Promise<void> {
-    const token: string = await StorageUtil.get(AuthService.tokenKey)
-    if (token) {
-      AuthService.api.setAuthToken(token)
+    try {
+      const token: string = await StorageUtil.get(AuthService.tokenKey)
+      if (token) {
+        AuthService.api.setAuthToken(token)
+      }
+    } catch (err) {
+      hilog.error(DOMAIN, 'AuthService', 'Failed to restore session: %{public}s', JSON.stringify(err))
     }
   }
 }

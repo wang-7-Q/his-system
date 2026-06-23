@@ -1,7 +1,9 @@
 import { HttpParams } from '../../services/ApiClient'
 import { InspectionService } from '../../services/InspectionService'
-import { ColumnConfig } from '../../components/DataTable'
+import { ColumnConfig, DataTable } from '../../components/DataTable'
+import { getStringField } from '../../utils/ObjectAccess'
 import { promptAction } from '@kit.ArkUI'
+import { PageHeader } from '../../components/PageHeader'
 
 @ComponentV2
 struct InspectionPatientPage {
@@ -13,12 +15,18 @@ struct InspectionPatientPage {
   @Local patientName: string = ''
   @Local inspectionItem: string = ''
 
-  private columns: ColumnConfig<Object>[] = [
+  private columns: ColumnConfig[] = [
     { key: 'patient_name', title: '患者姓名', width: 100 },
     { key: 'item_name', title: '检验项目', width: 130 },
     { key: 'dept_name', title: '科室', width: 100 },
     { key: 'status', title: '状态', width: 70 },
   ]
+
+  @Builder
+  actionButtons(row: Object) {
+    Button('录入').fontSize(12).height(28).backgroundColor('#409EFF').fontColor('#FFFFFF')
+      .onClick(() => { this.recordId = getStringField(row, 'id'); this.dialogVisible = true })
+  }
 
   aboutToAppear(): void { this.loadList() }
 
@@ -43,7 +51,7 @@ struct InspectionPatientPage {
       params.add('id', this.recordId)
       params.add('patient_name', this.patientName)
       params.add('inspection_item', this.inspectionItem)
-      const result = await InspectionService.updataInspectionPatient(params)
+      const result = await InspectionService.updateInspectionPatient(params)
       if (result.status === 1) {
         promptAction.showToast({ message: '录入成功', duration: 2000 })
         this.dialogVisible = false; this.loadList()
@@ -58,10 +66,8 @@ struct InspectionPatientPage {
       PageHeader({ title: '检验患者录入' })
       DataTable({
         columns: this.columns, data: this.tableData, loading: this.loading,
-        actionColumn: (row: Object) => {
-          Button('录入').fontSize(12).height(28).backgroundColor('#409EFF').fontColor('#FFFFFF')
-            .onClick(() => { this.recordId = String((row as Record<string, Object>)['id'] || ''); this.dialogVisible = true })
-        }
+        showActionColumn: true,
+        actionColumn: (row: Object) => { this.actionButtons(row) }
       })
       if (this.dialogVisible) {
         Stack() {
@@ -75,7 +81,7 @@ struct InspectionPatientPage {
             Row() {
               Button('取消').layoutWeight(1).backgroundColor('#F5F5F5').onClick(() => this.dialogVisible = false)
               Blank().width(12)
-              Button('提交').layoutWeight(1).backgroundColor('#409EFF').fontColor('#FFFFFF').loading(this.formLoading).onClick(() => this.onSubmit())
+              Button(this.formLoading ? '提交中...' : '提交').layoutWeight(1).backgroundColor('#409EFF').fontColor('#FFFFFF').enabled(!this.formLoading).onClick(() => this.onSubmit())
             }.width('100%')
           }.width('85%').padding(20).backgroundColor('#FFFFFF').borderRadius(12)
         }.width('100%').height('100%')

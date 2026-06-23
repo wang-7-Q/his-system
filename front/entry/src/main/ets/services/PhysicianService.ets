@@ -2,6 +2,7 @@ import { ApiClient, HttpParams } from './ApiClient'
 import { RestBean } from '../models/RestBean'
 import { Patient } from '../models/Patient'
 import { Registration } from '../models/Registration'
+import { Drug } from '../models/Drug'
 
 export class PhysicianService {
   private static api: ApiClient = ApiClient.getInstance()
@@ -74,8 +75,8 @@ export class PhysicianService {
     return PhysicianService.api.post<void>(8092, '/addPrescription', data)
   }
 
-  static async searchDrug(params: HttpParams): Promise<RestBean<void>> {
-    return PhysicianService.api.post<void>(8092, '/searchDrug', params)
+  static async searchDrug(params: HttpParams): Promise<RestBean<Drug>> {
+    return PhysicianService.api.post<Drug>(8092, '/searchDrug', params)
   }
 
   static async getPatientItemByPhysician(registId: string): Promise<RestBean<Patient>> {

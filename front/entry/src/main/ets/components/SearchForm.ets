@@ -1,16 +1,21 @@
+export interface PickerOption {
+  label: string
+  value: string
+}
+
 export interface SearchField {
   key: string
   label: string
   type: 'text' | 'select' | 'date'
   placeholder?: string
-  options?: { label: string, value: string }[]
+  options?: PickerOption[]
 }
 
 @ComponentV2
 export struct SearchForm {
   @Param fields: SearchField[] = []
-  @Event onSearch?: (values: Record<string, string>) => void
-  @Event onReset?: () => void
+  @Event onSearch: (values: Record<string, string>) => void = (_values: Record<string, string>) => {}
+  @Event onReset: () => void = () => {}
   @Local formValues: Record<string, string> = {}
 
   aboutToAppear(): void {
@@ -19,12 +24,24 @@ export struct SearchForm {
 
   private resetValues(): void {
     const values: Record<string, string> = {}
-    this.fields.forEach(f => values[f.key] = '')
+    this.fields.forEach((f: SearchField) => values[f.key] = '')
     this.formValues = values
   }
 
+  private buildSelectOptions(field: SearchField): PickerOption[] {
+    if (!field.options) {
+      return []
+    }
+    const result: PickerOption[] = []
+    for (let i = 0; i < field.options.length; i++) {
+      const opt: PickerOption = { value: field.options[i].value, label: field.options[i].label }
+      result.push(opt)
+    }
+    return result
+  }
+
   build() {
-    Row() {
+    Flex({ wrap: FlexWrap.Wrap }) {
       ForEach(this.fields, (field: SearchField) => {
         Row() {
           Text(field.label)
@@ -38,7 +55,7 @@ export struct SearchForm {
               .fontSize(13)
               .onChange((value: string) => this.formValues[field.key] = value)
           } else if (field.type === 'select' && field.options) {
-            Select(field.options.map(o => ({ value: o.value, label: o.label })))
+            Select(this.buildSelectOptions(field))
               .width(160)
               .height(32)
               .onSelect((index: number) => {
@@ -48,9 +65,12 @@ export struct SearchForm {
             DatePicker()
               .width(160)
               .height(32)
-              .onChange((value: Date) => {
+              .onChange((value: DatePickerResult) => {
+                const year: number = value.year || 2024
+                const month: number = (value.month || 0) + 1
+                const day: number = value.day || 1
                 this.formValues[field.key] =
-                  `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}-${String(value.getDate()).padStart(2, '0')}`
+                  `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
               })
           }
         }
@@ -62,7 +82,7 @@ export struct SearchForm {
         .backgroundColor('#409EFF')
         .fontColor('#FFFFFF')
         .height(32)
-        .onClick(() => this.onSearch?.({...this.formValues}))
+        .onClick(() => this.onSearch(this.formValues))
 
       Button('重置')
         .fontSize(13)
@@ -72,7 +92,7 @@ export struct SearchForm {
         .margin({ left: 8 })
         .onClick(() => {
           this.resetValues()
-          this.onReset?.()
+          this.onReset()
         })
     }
     .width('100%')
@@ -80,6 +100,5 @@ export struct SearchForm {
     .backgroundColor('#FFFFFF')
     .borderRadius(8)
     .margin({ bottom: 12 })
-    .flexWrap(FlexWrap.Wrap)
   }
 }

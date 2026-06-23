@@ -29,8 +29,8 @@ export class InspectionService {
     return InspectionService.api.get<InspectionItem>(8092, '/getInspectionPatientEmp')
   }
 
-  static async updataInspectionPatient(data: HttpParams): Promise<RestBean<void>> {
-    return InspectionService.api.post<void>(8092, '/updataInspectionPatient', data)
+  static async updateInspectionPatient(data: HttpParams): Promise<RestBean<void>> {
+    return InspectionService.api.post<void>(8092, '/updateInspectionPatient', data)
   }
 
   static async getPatientItemByInspection(registId: string): Promise<RestBean<InspectionItem>> {

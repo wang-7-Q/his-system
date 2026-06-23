@@ -4,6 +4,7 @@ import { PageHeader } from '../../components/PageHeader'
 import { RegistrationService } from '../../services/RegistrationService'
 import { PageInfo, PaginationBar } from '../../components/PaginationBar'
 import { ColumnConfig, DataTable } from '../../components/DataTable'
+import { getStringField } from '../../utils/ObjectAccess'
 import { promptAction } from '@kit.ArkUI'
 
 @ComponentV2
@@ -14,7 +15,7 @@ struct ExpenseRefundPage {
   @Local confirmVisible: boolean = false
   @Local selectedRow: Object | null = null
 
-  private columns: ColumnConfig<Object>[] = [
+  private columns: ColumnConfig[] = [
     { key: 'case_number', title: '病历号', width: 100 },
     { key: 'patient_name', title: '姓名', width: 80 },
     { key: 'dept_name', title: '科室', width: 100 },
@@ -44,7 +45,7 @@ struct ExpenseRefundPage {
     if (!this.selectedRow) {
       return
     }
-    const registId: string = String((this.selectedRow as Record<string, Object>)['regist_id'] || '')
+    const registId: string = getStringField(this.selectedRow as Object, 'regist_id')
     try {
       const params: HttpParams = new HttpParams()
       params.add('regist_id', registId)
@@ -71,30 +72,34 @@ struct ExpenseRefundPage {
   }
 
   build() {
-    Column() {
-      PageHeader({ title: '退费' })
-      DataTable({
-        columns: this.columns,
-        data: this.tableData,
-        loading: this.loading,
-        actionColumn: (row: Object) => { this.actionButtons(row) }
-      })
-      PaginationBar({
-        pageInfo: this.pageInfo,
-        onChange: (_page: number, _size: number) => this.loadList()
+    Stack() {
+      Column() {
+        PageHeader({ title: '退费' })
+        DataTable({
+          columns: this.columns,
+          data: this.tableData,
+          loading: this.loading,
+          showActionColumn: true,
+          actionColumn: (row: Object) => { this.actionButtons(row) }
+        })
+        PaginationBar({
+          pageInfo: this.pageInfo,
+          onChange: (_page: number, _size: number) => this.loadList()
+        })
+      }
+      .width('100%').height('100%')
+      .padding(16).backgroundColor('#F0F2F5')
+
+      ConfirmDialog({
+        visible: this.confirmVisible,
+        title: '确认退费',
+        message: '确定要退费吗？',
+        danger: true,
+        onConfirm: () => this.doRefund(),
+        onCancel: () => this.confirmVisible = false,
       })
     }
     .width('100%').height('100%')
-    .padding(16).backgroundColor('#F0F2F5')
-
-    ConfirmDialog({
-      visible: this.confirmVisible,
-      title: '确认退费',
-      message: '确定要退费吗？',
-      danger: true,
-      onConfirm: () => this.doRefund(),
-      onCancel: () => this.confirmVisible = false,
-    })
   }
 }
 

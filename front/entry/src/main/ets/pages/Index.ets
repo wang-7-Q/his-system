@@ -1,8 +1,11 @@
+import { hilog } from '@kit.PerformanceAnalysisKit'
 import { StorageUtil } from '../common/StorageUtil'
 import { AuthService } from '../services/AuthService'
 import { User, userFromPlain } from '../models/User'
 import LoginPage from './LoginPage'
 import HomePage from './HomePage'
+
+const DOMAIN = 0x0000
 
 @Entry
 @ComponentV2
@@ -28,15 +31,17 @@ struct Index {
             const user: User = userFromPlain(parsed)
             AppStorage.setOrCreate('loginUser', user)
             AppStorage.setOrCreate('isLoggedIn', true)
-          } catch (_e) {
+          } catch (e) {
             // Corrupted user data - force re-login
+            hilog.error(DOMAIN, 'Index', 'Corrupted loginUser data: %{public}s', JSON.stringify(e))
             await StorageUtil.remove('Flag')
             await StorageUtil.remove('loginUser')
           }
         }
       }
-    } catch (_e) {
+    } catch (e) {
       // Storage not ready or error - proceed to login
+      hilog.error(DOMAIN, 'Index', 'Failed to init: %{public}s', JSON.stringify(e))
     }
 
     this.initialized = true

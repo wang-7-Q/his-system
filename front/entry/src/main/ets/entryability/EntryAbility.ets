@@ -2,43 +2,58 @@ import { AbilityConstant, ConfigurationConstant, UIAbility, Want } from '@kit.Ab
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { window } from '@kit.ArkUI';
 import { StorageUtil } from '../common/StorageUtil';
+import { BreakpointSystem } from '../common/BreakpointSystem';
 
 const DOMAIN = 0x0000;
 
 export default class EntryAbility extends UIAbility {
   onCreate(want: Want, launchParam: AbilityConstant.LaunchParam): void {
     this.context.getApplicationContext().setColorMode(ConfigurationConstant.ColorMode.COLOR_MODE_NOT_SET);
-    hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onCreate');
+    AppStorage.setOrCreate('isLoggedIn', false);
+    AppStorage.setOrCreate('loginUser', null);
+    hilog.info(DOMAIN, 'HIS', '%{public}s', 'Application onCreate');
   }
 
   onDestroy(): void {
-    hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onDestroy');
+    hilog.info(DOMAIN, 'HIS', '%{public}s', 'Application onDestroy');
   }
 
-  onWindowStageCreate(windowStage: window.WindowStage): void {
-    hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onWindowStageCreate');
+  async onWindowStageCreate(windowStage: window.WindowStage): Promise<void> {
+    hilog.info(DOMAIN, 'HIS', '%{public}s', 'Ability onWindowStageCreate');
 
-    // Initialize StorageUtil asynchronously (errors are handled in Index.ets)
-    StorageUtil.init(this.context).catch();
+    try {
+      const windowClass = await windowStage.getMainWindow();
+
+      // Initialize StorageUtil
+      await StorageUtil.init(this.context);
+
+      // Set up breakpoint system for responsive layout
+      BreakpointSystem.updateBreakpoint(windowClass);
+      windowClass.on('windowSizeChange', () => {
+        BreakpointSystem.updateBreakpoint(windowClass);
+      });
+    } catch (err) {
+      hilog.error(DOMAIN, 'HIS', 'Window init error: %{public}s', JSON.stringify(err));
+    }
 
     windowStage.loadContent('pages/Index', (err) => {
       if (err.code) {
-        hilog.error(DOMAIN, 'testTag', 'Failed to load the content. Cause: %{public}s', JSON.stringify(err));
+        hilog.error(DOMAIN, 'HIS', 'Failed to load content. Cause: %{public}s', JSON.stringify(err));
         return;
       }
-      hilog.info(DOMAIN, 'testTag', 'Succeeded in loading the content.');
+      hilog.info(DOMAIN, 'HIS', 'Succeeded in loading content.');
     });
   }
 
   onWindowStageDestroy(): void {
-    hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onWindowStageDestroy');
+    hilog.info(DOMAIN, 'HIS', '%{public}s', 'Ability onWindowStageDestroy');
   }
 
   onForeground(): void {
-    hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onForeground');
+    hilog.info(DOMAIN, 'HIS', '%{public}s', 'Ability onForeground');
   }
 
   onBackground(): void {
-    hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onBackground');
+    hilog.info(DOMAIN, 'HIS', '%{public}s', 'Ability onBackground');
   }
 }

@@ -9,7 +9,7 @@ struct ExpenseQueryPage {
   @Local loading: boolean = false
   @Local registId: string = ''
 
-  private columns: ColumnConfig<Object>[] = [
+  private columns: ColumnConfig[] = [
     { key: 'item_name', title: '项目名称', width: 130 },
     { key: 'item_type', title: '类型', width: 70 },
     { key: 'price', title: '金额', width: 70 },

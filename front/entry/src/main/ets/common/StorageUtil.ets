@@ -1,4 +1,5 @@
 import { preferences } from '@kit.ArkData'
+import type { Context } from '@kit.AbilityKit'
 
 const STORE_NAME: string = 'his_preferences'
 

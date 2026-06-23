@@ -2,8 +2,12 @@
 export struct PageHeader {
   @Param title: string = ''
   @Param showBack: boolean = false
-  @Event onBack?: () => void
-  @BuilderParam actionArea?: () => void
+  @Event onBack: () => void = () => {}
+  @BuilderParam actionArea: () => void = this.defaultActionArea
+
+  @Builder
+  defaultActionArea() {
+  }
 
   build() {
     Row() {
@@ -16,7 +20,7 @@ export struct PageHeader {
         .width(36)
         .height(36)
         .backgroundColor(Color.Transparent)
-        .onClick(() => this.onBack?.())
+        .onClick(() => this.onBack())
         .margin({ right: 12 })
       }
       Text(this.title)
@@ -24,9 +28,7 @@ export struct PageHeader {
         .fontWeight(FontWeight.Bold)
         .fontColor('#303133')
         .layoutWeight(1)
-      if (this.actionArea) {
-        this.actionArea()
-      }
+      this.actionArea()
     }
     .width('100%')
     .height(56)

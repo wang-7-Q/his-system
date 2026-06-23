@@ -1,19 +1,28 @@
 import { HttpParams } from '../../services/ApiClient'
 import { InspectionService } from '../../services/InspectionService'
-import { ColumnConfig } from '../../components/DataTable'
+import { ColumnConfig, DataTable } from '../../components/DataTable'
+import { getStringField } from '../../utils/ObjectAccess'
 import { promptAction } from '@kit.ArkUI'
+import { PageHeader } from '../../components/PageHeader'
 
 @ComponentV2
 struct InspectionInputPage {
   @Local tableData: Object[] = []
   @Local loading: boolean = false
   @Local resultInput: string = ''
+  @Local editingRow: Object | null = null
 
-  private columns: ColumnConfig<Object>[] = [
+  private columns: ColumnConfig[] = [
     { key: 'patient_name', title: '患者姓名', width: 100 },
     { key: 'item_name', title: '检验项目', width: 130 },
     { key: 'status', title: '状态', width: 70 },
   ]
+
+  @Builder
+  actionButtons(row: Object) {
+    Button('录入结果').fontSize(12).height(28).backgroundColor('#67C23A').fontColor('#FFFFFF')
+      .onClick(() => { this.editingRow = row; this.resultInput = '' })
+  }
 
   aboutToAppear(): void { this.loadList() }
 
@@ -27,28 +36,49 @@ struct InspectionInputPage {
     } finally { this.loading = false }
   }
 
-  private async submitResult(row: Object): Promise<void> {
+  private async submitResult(): Promise<void> {
+    const row = this.editingRow
+    if (row === null) { return }
     if (!this.resultInput) { promptAction.showToast({ message: '请输入检验结果', duration: 2000 }); return }
     try {
       const params: HttpParams = new HttpParams()
-      params.add('regist_id', String((row as Record<string, Object>)['regist_id'] || ''))
+      params.add('regist_id', getStringField(row, 'regist_id'))
       params.add('inspection_result', this.resultInput)
-      const result = await InspectionService.updataInspectionPatient(params)
+      const result = await InspectionService.updateInspectionPatient(params)
       if (result.status === 1) {
-        promptAction.showToast({ message: '结果录入成功', duration: 2000 }); this.resultInput = ''; this.loadList()
+        promptAction.showToast({ message: '结果录入成功', duration: 2000 }); this.resultInput = ''; this.editingRow = null; this.loadList()
       }
     } catch (_e) { promptAction.showToast({ message: '录入失败', duration: 2000 }) }
+  }
+
+  @Builder
+  resultInputBar() {
+    if (this.editingRow !== null) {
+      Row() {
+        TextInput({ placeholder: '请输入检验结果', text: this.resultInput })
+          .onChange((value: string) => { this.resultInput = value })
+          .layoutWeight(1).height(36).fontSize(14)
+        Button('确认录入').fontSize(13).height(36)
+          .backgroundColor('#67C23A').fontColor('#FFFFFF')
+          .onClick(() => { this.submitResult() })
+        Button('取消').fontSize(13).height(36)
+          .backgroundColor('#909399').fontColor('#FFFFFF')
+          .margin({ left: 8 })
+          .onClick(() => { this.editingRow = null; this.resultInput = '' })
+      }
+      .width('100%').padding(12).backgroundColor('#FFFFFF').borderRadius(8)
+      .margin({ bottom: 12 })
+    }
   }
 
   build() {
     Column() {
       PageHeader({ title: '检验结果录入' })
+      this.resultInputBar()
       DataTable({
         columns: this.columns, data: this.tableData, loading: this.loading,
-        actionColumn: (row: Object) => {
-          Button('录入结果').fontSize(12).height(28).backgroundColor('#67C23A').fontColor('#FFFFFF')
-            .onClick(() => { this.resultInput = ''; this.submitResult(row) })
-        }
+        showActionColumn: true,
+        actionColumn: (row: Object) => { this.actionButtons(row) }
       })
     }
     .width('100%').height('100%').padding(16).backgroundColor('#F0F2F5')
