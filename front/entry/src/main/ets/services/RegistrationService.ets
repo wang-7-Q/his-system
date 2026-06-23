@@ -94,10 +94,10 @@ export class RegistrationService {
     const params: HttpParams = new HttpParams()
     if (caseNumber) { params.add('case_number', caseNumber) }
     if (realName) { params.add('real_name', realName) }
-    // 后端 searchExpenseChargePatient 返回 Map<String,Object>，不是 RestBean
-    return RegistrationService.api.get<RestBeanMap>(
+    const raw: string = await RegistrationService.api.getRaw(
       PORT, '/searchExpenseChargePatient', params
-    ) as unknown as Promise<RestBeanMap>
+    )
+    return JSON.parse(raw) as RestBeanMap
   }
 
   /** 收费结算 — POST JSON body: List<Map> */
@@ -112,9 +112,10 @@ export class RegistrationService {
     const params: HttpParams = new HttpParams()
     if (caseNumber) { params.add('case_number', caseNumber) }
     if (realName) { params.add('real_name', realName) }
-    return RegistrationService.api.get<RestBeanMap>(
+    const raw: string = await RegistrationService.api.getRaw(
       PORT, '/searchExpenseRefundPatient', params
-    ) as unknown as Promise<RestBeanMap>
+    )
+    return JSON.parse(raw) as RestBeanMap
   }
 
   /** 退费结算 — POST JSON body: List<Map> */
