@@ -300,16 +300,15 @@ struct ExpenseChargePage {
           .borderRadius(8)
         }
       }
-      .width('100%')
-      .height('100%')
+      .layoutWeight(1)
       .padding(16)
       .backgroundColor('#F0F2F5')
+
+      // 底部操作栏
+      this.bottomBar()
     }
     .width('100%')
     .height('100%')
-
-    // 底部操作栏
-    this.bottomBar()
   }
 }
 

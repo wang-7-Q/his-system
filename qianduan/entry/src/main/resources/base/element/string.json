@@ -1,0 +1,20 @@
+{
+  "string": [
+    {
+      "name": "module_desc",
+      "value": "东软云医院HIS系统"
+    },
+    {
+      "name": "EntryAbility_desc",
+      "value": "东软云医院HIS系统主入口"
+    },
+    {
+      "name": "EntryAbility_label",
+      "value": "云医院HIS"
+    },
+    {
+      "name": "internet_permission_reason",
+      "value": "用于与后端服务器通信"
+    }
+  ]
+}

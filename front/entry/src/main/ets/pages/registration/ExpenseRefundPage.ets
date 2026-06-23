@@ -256,65 +256,71 @@ struct ExpenseRefundPage {
   build() {
     Stack() {
       Column() {
-        PageHeader({ title: '退费' })
+        Column() {
+          PageHeader({ title: '退费' })
 
-        // 搜索区
-        Row() {
-          TextInput({ placeholder: '请输入病历号' })
-            .value(this.caseNumber)
-            .onChange((v: string) => { this.caseNumber = v })
-            .fontSize(13)
-            .height(36)
-            .layoutWeight(1)
-            .margin({ right: 12 })
+          // 搜索区
+          Row() {
+            TextInput({ placeholder: '请输入病历号' })
+              .value(this.caseNumber)
+              .onChange((v: string) => { this.caseNumber = v })
+              .fontSize(13)
+              .height(36)
+              .layoutWeight(1)
+              .margin({ right: 12 })
 
-          TextInput({ placeholder: '请输入患者名' })
-            .value(this.realName)
-            .onChange((v: string) => { this.realName = v })
-            .fontSize(13)
-            .height(36)
-            .layoutWeight(1)
-            .margin({ right: 12 })
+            TextInput({ placeholder: '请输入患者名' })
+              .value(this.realName)
+              .onChange((v: string) => { this.realName = v })
+              .fontSize(13)
+              .height(36)
+              .layoutWeight(1)
+              .margin({ right: 12 })
 
-          Button('搜索')
-            .fontSize(13)
-            .fontColor('#FFFFFF')
-            .backgroundColor('#409EFF')
-            .borderRadius(4)
-            .height(36)
-            .padding({ left: 16, right: 16 })
-            .onClick(() => this.searchPatient())
-        }
-        .width('100%')
-        .margin({ bottom: 12 })
+            Button('搜索')
+              .fontSize(13)
+              .fontColor('#FFFFFF')
+              .backgroundColor('#409EFF')
+              .borderRadius(4)
+              .height(36)
+              .padding({ left: 16, right: 16 })
+              .onClick(() => this.searchPatient())
+          }
+          .width('100%')
+          .margin({ bottom: 12 })
 
-        // 患者信息
-        this.patientInfoBar()
+          // 患者信息
+          this.patientInfoBar()
 
-        // 项目表格
-        if (this.loading) {
-          LoadingProgress().width(40).height(40).margin({ top: 60 })
-        } else if (this.items.length > 0) {
-          Column() {
-            this.itemHeader()
-            Scroll() {
-              Column() {
-                ForEach(this.items, (item: ExpenseItem, index: number) => {
-                  this.itemRow(item, index)
-                }, (item: ExpenseItem) => String(item.id))
+          // 项目表格
+          if (this.loading) {
+            LoadingProgress().width(40).height(40).margin({ top: 60 })
+          } else if (this.items.length > 0) {
+            Column() {
+              this.itemHeader()
+              Scroll() {
+                Column() {
+                  ForEach(this.items, (item: ExpenseItem, index: number) => {
+                    this.itemRow(item, index)
+                  }, (item: ExpenseItem) => String(item.id))
+                }
               }
+              .layoutWeight(1)
             }
             .layoutWeight(1)
+            .backgroundColor('#FFFFFF')
+            .borderRadius(8)
           }
-          .layoutWeight(1)
-          .backgroundColor('#FFFFFF')
-          .borderRadius(8)
         }
+        .layoutWeight(1)
+        .padding(16)
+        .backgroundColor('#F0F2F5')
+
+        // 底部操作栏
+        this.bottomBar()
       }
       .width('100%')
       .height('100%')
-      .padding(16)
-      .backgroundColor('#F0F2F5')
 
       // 确认对话框
       ConfirmDialog({

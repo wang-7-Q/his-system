@@ -23,7 +23,15 @@ struct LoginPage {
         this.errorMsg = result.msg || '登录失败，请检查用户名和密码'
       }
     } catch (err) {
-      this.errorMsg = '网络连接失败，请确认后端服务已启动'
+      let detail: string = ''
+      if (err instanceof Error) {
+        detail = (err as Error).message
+      } else if (typeof err === 'string') {
+        detail = err as string
+      } else {
+        detail = JSON.stringify(err)
+      }
+      this.errorMsg = '网络连接失败 | ' + detail
     } finally {
       this.loading = false
     }

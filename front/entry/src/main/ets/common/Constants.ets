@@ -7,7 +7,7 @@ export interface TabConfig {
 
 export class Constants {
   /** Default API base URL (host VM network IP for emulator access) */
-  static readonly API_BASE_URL_LOCAL: string = 'http://172.16.42.72'
+  static readonly API_BASE_URL_LOCAL: string = 'http://192.168.183.1'
   static readonly PORT_8091: number = 8091
   static readonly PORT_8092: number = 8092
 

@@ -1,0 +1,12 @@
+{
+  "src": [
+    "pages/AppEntry",
+    "pages/LoginPage",
+    "pages/HomePage",
+    "pages/registration/OnsiteRegistrationPage",
+    "pages/registration/RegistrationRecordPage",
+    "pages/registration/ExpenseChargePage",
+    "pages/registration/ExpenseRefundPage",
+    "pages/registration/ExpenseManagePage"
+  ]
+}
