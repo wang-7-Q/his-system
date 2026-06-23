@@ -1,147 +1,315 @@
-import { HttpParams } from '../../services/ApiClient'
+/**
+ * @file 收费页面
+ * 功能：搜索患者 → 显示待收费项目明细（多选）→ 合计收费结算
+ */
 import { PageHeader } from '../../components/PageHeader'
 import { RegistrationService } from '../../services/RegistrationService'
-import { PageInfo, PaginationBar } from '../../components/PaginationBar'
-import { ColumnConfig, DataTable } from '../../components/DataTable'
+import { RestBeanMap, ExpenseItem } from '../../models/RestBean'
 import { promptAction } from '@kit.ArkUI'
 
 @ComponentV2
 struct ExpenseChargePage {
-  @Local tableData: Object[] = []
+  // ---- 搜索 ----
+  @Local caseNumber: string = ''
+  @Local realName: string = ''
+
+  // ---- 患者信息 ----
+  @Local patientName: string = ''
+  @Local patientCard: string = ''
+  @Local patientAge: string = ''
+  @Local patientGender: string = ''
+
+  // ---- 项目列表 ----
+  @Local items: ExpenseItem[] = []
+  @Local selectedIds: Set<number> = new Set<number>()
+  @Local totalPrice: string = '0.00'
   @Local loading: boolean = false
-  @Local pageInfo: PageInfo = { page: 1, size: 10, total: 0 }
-  @Local selectedRow: Object | null = null
-  @Local amountInput: string = ''
-  @Local chargeDialogVisible: boolean = false
 
-  private columns: ColumnConfig[] = [
-    { key: 'case_number', title: '病历号', width: 100 },
-    { key: 'patient_name', title: '姓名', width: 80 },
-    { key: 'dept_name', title: '科室', width: 100 },
-    { key: 'doctor_name', title: '医生', width: 80 },
-    { key: 'status', title: '状态', width: 70 },
-  ]
+  // ==================== 搜索 ====================
 
-  aboutToAppear(): void {
-    this.loadList()
-  }
-
-  private async loadList(): Promise<void> {
+  private async searchPatient(): Promise<void> {
+    if (!this.caseNumber && !this.realName) {
+      promptAction.showToast({ message: '请输入病历号或患者姓名', duration: 2000 })
+      return
+    }
     this.loading = true
     try {
-      const result = await RegistrationService.searchExpenseChargePatient()
-      if (result.list) {
-        this.tableData = result.list as Object[]
-        this.pageInfo.total = result.totalCount
+      const resp: RestBeanMap = await RegistrationService.searchExpenseChargePatient(
+        this.caseNumber, this.realName
+      )
+      if (resp.registMap == null) {
+        promptAction.showToast({ message: '未找到患者信息', duration: 2000 })
+        this.clearPatientInfo()
+        return
       }
+      const reg: Record<string, Object> = resp.registMap as Record<string, Object>
+      const keys: string[] = Object.keys(reg)
+      const values: Object[] = Object.values(reg)
+      for (let i = 0; i < keys.length; i++) {
+        const k: string = keys[i]
+        const v: string = String(values[i] || '')
+        if (k === 'real_name') { this.patientName = v }
+        else if (k === 'card_number') { this.patientCard = v }
+        else if (k === 'age') { this.patientAge = v }
+        else if (k === 'gender') { this.patientGender = v }
+      }
+      this.items = resp.requestList || []
+      this.selectedIds = new Set<number>()
+      this.calcTotal()
     } catch (_e) {
-      promptAction.showToast({ message: '加载收费列表失败', duration: 2000 })
+      promptAction.showToast({ message: '查询失败', duration: 2000 })
     } finally {
       this.loading = false
     }
   }
 
+  private clearPatientInfo(): void {
+    this.patientName = ''
+    this.patientCard = ''
+    this.patientAge = ''
+    this.patientGender = ''
+    this.items = []
+    this.selectedIds = new Set<number>()
+    this.totalPrice = '0.00'
+  }
+
+  // ==================== 选择逻辑 ====================
+
+  private toggleItem(itemId: number): void {
+    if (this.selectedIds.has(itemId)) {
+      this.selectedIds.delete(itemId)
+    } else {
+      this.selectedIds.add(itemId)
+    }
+    this.calcTotal()
+  }
+
+  private isSelected(itemId: number): boolean {
+    return this.selectedIds.has(itemId)
+  }
+
+  private calcTotal(): void {
+    let total: number = 0
+    for (let i = 0; i < this.items.length; i++) {
+      if (this.selectedIds.has(this.items[i].id)) {
+        const price: number = parseFloat(this.items[i].item_price) || 0
+        const num: number = parseInt(this.items[i].item_number) || 1
+        total = total + price * num
+      }
+    }
+    this.totalPrice = total.toFixed(2)
+  }
+
+  // ==================== 收费 ====================
+
   private async doCharge(): Promise<void> {
-    if (this.selectedRow === null) {
+    if (this.selectedIds.size === 0) {
+      promptAction.showToast({ message: '请选择要收费的项目', duration: 2000 })
       return
     }
-    if (!this.amountInput) {
-      promptAction.showToast({ message: '请输入收费金额', duration: 2000 })
-      return
+    const selectedList: Object[] = []
+    for (let i = 0; i < this.items.length; i++) {
+      if (this.selectedIds.has(this.items[i].id)) {
+        selectedList.push(this.items[i] as Object)
+      }
     }
     try {
-      const registId: string = String((this.selectedRow as Record<string, Object>)['regist_id'] || '')
-      const params: HttpParams = new HttpParams()
-      params.add('regist_id', registId)
-      params.add('amount', this.amountInput)
-
-      const result = await RegistrationService.expenseCharge(params)
+      const jsonBody: string = JSON.stringify(selectedList)
+      const result = await RegistrationService.expenseCharge(jsonBody)
       if (result.status === 1) {
-        promptAction.showToast({ message: '收费成功', duration: 2000 })
-        this.chargeDialogVisible = false
-        this.selectedRow = null
-        this.amountInput = ''
-        this.loadList()
+        promptAction.showToast({
+          message: '收费成功，合计 ¥' + this.totalPrice,
+          duration: 2000
+        })
+        this.searchPatient()
+      } else {
+        promptAction.showToast({ message: result.msg || '收费失败', duration: 2000 })
       }
     } catch (_e) {
       promptAction.showToast({ message: '收费失败', duration: 2000 })
     }
   }
 
+  // ==================== Builder ====================
+
   @Builder
-  chargeDialog() {
-    if (this.chargeDialogVisible && this.selectedRow !== null) {
-      Stack() {
-        Column() {
-          Text('收费').fontSize(16).fontWeight(FontWeight.Bold).margin({ bottom: 16 })
-          Row() {
-            Text('患者：').fontSize(14).fontColor('#606266')
-            Text(String((this.selectedRow as Record<string, Object>)['patient_name'] || '')).fontSize(14)
-          }
-          .width('100%').margin({ bottom: 8 })
-          Row() {
-            Text('病历号：').fontSize(14).fontColor('#606266')
-            Text(String((this.selectedRow as Record<string, Object>)['case_number'] || '')).fontSize(14)
-          }
-          .width('100%').margin({ bottom: 16 })
-          TextInput({ placeholder: '请输入收费金额', text: this.amountInput })
-            .onChange((value: string) => { this.amountInput = value })
-            .type(InputType.Number)
-            .width('100%').height(40).fontSize(14)
-            .margin({ bottom: 16 })
-          Row() {
-            Button('取消').fontSize(14).height(36)
-              .backgroundColor('#909399').fontColor('#FFFFFF')
-              .layoutWeight(1).margin({ right: 8 })
-              .onClick(() => { this.chargeDialogVisible = false; this.selectedRow = null; this.amountInput = '' })
-            Button('确认收费').fontSize(14).height(36)
-              .backgroundColor('#409EFF').fontColor('#FFFFFF')
-              .layoutWeight(1)
-              .onClick(() => { this.doCharge() })
-          }
-          .width('100%')
-        }
-        .width('80%').padding(20).backgroundColor('#FFFFFF').borderRadius(12)
-        .shadow({ radius: 16, color: '#00000020' })
+  patientInfoBar() {
+    if (this.patientName) {
+      Row() {
+        Text('患者信息确认')
+          .fontSize(14)
+          .fontWeight(FontWeight.Medium)
+          .fontColor('#303133')
+          .margin({ right: 16 })
+        Text('姓名: ' + this.patientName)
+          .fontSize(13).fontColor('#606266').margin({ right: 8 })
+        Text('身份证: ' + this.patientCard)
+          .fontSize(13).fontColor('#606266').margin({ right: 8 })
+        Text('年龄: ' + this.patientAge)
+          .fontSize(13).fontColor('#606266').margin({ right: 8 })
+        Text('性别: ' + this.patientGender)
+          .fontSize(13).fontColor('#606266')
       }
-      .width('100%').height('100%')
-      .backgroundColor('#00000050')
-      .position({ x: 0, y: 0 })
+      .width('100%')
+      .padding(12)
+      .backgroundColor('#FFFFFF')
+      .borderRadius(8)
+      .margin({ bottom: 12 })
     }
   }
 
   @Builder
-  actionButtons(row: Object) {
-    Button('收费').fontSize(12).height(28)
-      .backgroundColor('#67C23A').fontColor('#FFFFFF')
-      .onClick(() => {
-        this.selectedRow = row
-        this.amountInput = ''
-        this.chargeDialogVisible = true
-      })
+  itemHeader() {
+    Row() {
+      Text('选择').fontSize(12).fontWeight(FontWeight.Medium).width(50)
+      Text('项目名称').fontSize(12).fontWeight(FontWeight.Medium).layoutWeight(1)
+      Text('单价').fontSize(12).fontWeight(FontWeight.Medium).width(70)
+      Text('类型').fontSize(12).fontWeight(FontWeight.Medium).width(60)
+      Text('规格').fontSize(12).fontWeight(FontWeight.Medium).width(100)
+      Text('数量').fontSize(12).fontWeight(FontWeight.Medium).width(50)
+      Text('开立时间').fontSize(12).fontWeight(FontWeight.Medium).width(140)
+    }
+    .width('100%')
+    .height(36)
+    .backgroundColor('#F5F7FA')
+    .borderRadius({ topLeft: 8, topRight: 8 })
+    .padding({ left: 8, right: 8 })
   }
+
+  @Builder
+  itemRow(item: ExpenseItem, index: number) {
+    Row() {
+      Button(this.isSelected(item.id) ? '☑' : '☐')
+        .fontSize(14)
+        .fontColor(this.isSelected(item.id) ? '#409EFF' : '#909399')
+        .backgroundColor(Color.Transparent)
+        .width(50)
+        .height(32)
+        .onClick(() => { this.toggleItem(item.id) })
+      Text(item.item_name)
+        .fontSize(12).fontColor('#303133')
+        .layoutWeight(1)
+        .maxLines(1)
+        .textOverflow({ overflow: TextOverflow.Ellipsis })
+      Text(item.item_price)
+        .fontSize(12).fontColor('#303133').width(70)
+      Text(item.item_type)
+        .fontSize(12).fontColor('#303133').width(60)
+      Text(item.item_format)
+        .fontSize(12).fontColor('#303133').width(100)
+        .maxLines(1)
+        .textOverflow({ overflow: TextOverflow.Ellipsis })
+      Text(item.item_number)
+        .fontSize(12).fontColor('#303133').width(50)
+      Text(item.item_create_time)
+        .fontSize(12).fontColor('#303133').width(140)
+        .maxLines(1)
+        .textOverflow({ overflow: TextOverflow.Ellipsis })
+    }
+    .width('100%')
+    .height(36)
+    .backgroundColor(index % 2 === 0 ? '#FFFFFF' : '#FAFAFA')
+    .padding({ left: 8, right: 8 })
+  }
+
+  @Builder
+  bottomBar() {
+    Row() {
+      Text('已选: ' + String(this.selectedIds.size) + ' 项')
+        .fontSize(13)
+        .fontColor('#606266')
+      Blank()
+      Text('合计: ¥' + this.totalPrice)
+        .fontSize(16)
+        .fontWeight(FontWeight.Bold)
+        .fontColor('#E6A23C')
+        .margin({ right: 16 })
+      Button('收费结算')
+        .fontSize(14)
+        .fontColor('#FFFFFF')
+        .backgroundColor('#67C23A')
+        .borderRadius(4)
+        .height(40)
+        .padding({ left: 20, right: 20 })
+        .onClick(() => this.doCharge())
+    }
+    .width('100%')
+    .height(52)
+    .padding({ left: 16, right: 16 })
+    .backgroundColor('#FFFFFF')
+    .shadow({ radius: 4, color: '#00000010' })
+  }
+
+  // ==================== 主构建 ====================
 
   build() {
-    Stack() {
+    Column() {
       Column() {
         PageHeader({ title: '收费' })
-        DataTable({
-          columns: this.columns,
-          data: this.tableData,
-          loading: this.loading,
-          showActionColumn: true,
-          actionColumn: (row: Object) => { this.actionButtons(row) }
-        })
-        PaginationBar({
-          pageInfo: this.pageInfo,
-          onChange: (_page: number, _size: number) => this.loadList()
-        })
+
+        // 搜索区
+        Row() {
+          TextInput({ placeholder: '请输入病历号' })
+            .value(this.caseNumber)
+            .onChange((v: string) => { this.caseNumber = v })
+            .fontSize(13)
+            .height(36)
+            .layoutWeight(1)
+            .margin({ right: 12 })
+
+          TextInput({ placeholder: '请输入患者名' })
+            .value(this.realName)
+            .onChange((v: string) => { this.realName = v })
+            .fontSize(13)
+            .height(36)
+            .layoutWeight(1)
+            .margin({ right: 12 })
+
+          Button('搜索')
+            .fontSize(13)
+            .fontColor('#FFFFFF')
+            .backgroundColor('#409EFF')
+            .borderRadius(4)
+            .height(36)
+            .padding({ left: 16, right: 16 })
+            .onClick(() => this.searchPatient())
+        }
+        .width('100%')
+        .margin({ bottom: 12 })
+
+        // 患者信息
+        this.patientInfoBar()
+
+        // 项目表格
+        if (this.loading) {
+          LoadingProgress().width(40).height(40).margin({ top: 60 })
+        } else if (this.items.length > 0) {
+          Column() {
+            this.itemHeader()
+            Scroll() {
+              Column() {
+                ForEach(this.items, (item: ExpenseItem, index: number) => {
+                  this.itemRow(item, index)
+                }, (item: ExpenseItem) => String(item.id))
+              }
+            }
+            .layoutWeight(1)
+          }
+          .layoutWeight(1)
+          .backgroundColor('#FFFFFF')
+          .borderRadius(8)
+        }
       }
-      .width('100%').height('100%')
-      .padding(16).backgroundColor('#F0F2F5')
-      this.chargeDialog()
+      .width('100%')
+      .height('100%')
+      .padding(16)
+      .backgroundColor('#F0F2F5')
     }
-    .width('100%').height('100%')
+    .width('100%')
+    .height('100%')
+
+    // 底部操作栏
+    this.bottomBar()
   }
 }
 
