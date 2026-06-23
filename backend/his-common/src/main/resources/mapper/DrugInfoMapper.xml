@@ -48,4 +48,16 @@
 		AND mnemonic_code like concat('%',#{mnemonic_code,jdbcType=VARCHAR},'%')
 	</if>
 	</select>
+
+	<!-- 扣减库存 -->
+	<update id="decrementStock">
+		UPDATE drug_info SET stock = stock - #{quantity}
+		WHERE id = #{drugId} AND stock >= #{quantity}
+	</update>
+
+	<!-- 恢复库存（退药时使用） -->
+	<update id="incrementStock">
+		UPDATE drug_info SET stock = stock + #{quantity}
+		WHERE id = #{drugId}
+	</update>
 </mapper>

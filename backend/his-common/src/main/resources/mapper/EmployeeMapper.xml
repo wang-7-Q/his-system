@@ -4,24 +4,25 @@
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.neuedu.mapper.EmployeeMapper">
   <select id="getRegistDoctorList" resultType="java.util.Map">
-    SELECT * 
+    SELECT *
     FROM employee e , scheduling s
     WHERE e.deptment_id = #{deptmentId}
     	AND e.regist_level_id = #{registLevelId}
     	AND e.scheduling_id = s.id
   </select>
-  
+
   <select id="getEmployeeByDeptid" resultType="java.util.Map">
-    SELECT * 
-    FROM employee 
+    SELECT *
+    FROM employee
     WHERE deptment_id=#{deptment_id}
   </select>
-  
-  <select id="getEmployeeAndDeptByNamePass" resultType="java.util.Map">
-    SELECT e.id id,e.realname realname,d.id deptment_id,d.dept_name dept_name,d.dept_type dept_type
+
+  <!-- BCrypt登录：仅按realname查询，返回含密码字段，由Service层做BCrypt比对 -->
+  <select id="getEmployeeByRealname" resultType="java.util.Map">
+    SELECT e.id id,e.realname realname,e.password password,
+           d.id deptment_id,d.dept_name dept_name,d.dept_type dept_type
     FROM employee e,department d
     WHERE e.deptment_id = d.id
-    	AND realname=#{realname,jdbcType=VARCHAR}
-    	AND password=#{password,jdbcType=VARCHAR}
+      AND realname=#{realname,jdbcType=VARCHAR}
   </select>
 </mapper>

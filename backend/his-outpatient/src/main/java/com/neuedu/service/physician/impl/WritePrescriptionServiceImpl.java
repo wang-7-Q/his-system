@@ -5,11 +5,13 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.neuedu.bean.RestBean;
 import com.neuedu.mapper.DrugInfoMapper;
 import com.neuedu.mapper.PrescriptionMapper;
 import com.neuedu.service.physician.WritePrescriptionService;
+
 @Service
 public class WritePrescriptionServiceImpl implements WritePrescriptionService {
 	@Autowired
@@ -23,18 +25,26 @@ public class WritePrescriptionServiceImpl implements WritePrescriptionService {
 	}
 
 	@Override
+	@Transactional
 	public RestBean addPrescription(List<Map<String, Object>> submit_prescription) {
 		for(Map<String,Object> m : submit_prescription) {
-			
+			// Insert prescription record
 			prescriptionMapper.insertPrescription(m);
-			System.out.println(m.get("register_id"));
-			System.out.println(m.get("drug_id"));
-			System.out.println(m.get("drug_usage"));
-			System.out.println(m.get("drug_number"));
+
+			// Decrement drug stock — throw if insufficient (triggers rollback)
+			Object drugIdObj = m.get("drug_id");
+			Object drugNumObj = m.get("drug_number");
+			if (drugIdObj != null && drugNumObj != null) {
+				Integer drugId = Integer.valueOf(drugIdObj.toString());
+				Integer quantity = Integer.valueOf(drugNumObj.toString());
+				int affected = drugInfoMapper.decrementStock(drugId, quantity);
+				if (affected == 0) {
+					throw new RuntimeException("库存不足: drugId=" + drugId + " 需要=" + quantity);
+				}
+			}
 		}
 		RestBean rest = new RestBean();
 		rest.setMsg("开立处方成功");
 		return rest;
 	}
-
 }

@@ -14,5 +14,9 @@ public interface DrugInfoMapper {
 	List<Map<String, Object>> searchPageDrug(Map<String, Object> map);
 	int searchPageDrugCount(Map<String, Object> map);
 
+	/** Decrement drug stock. Returns number of rows affected. */
+	int decrementStock(@Param("drugId") Integer drugId, @Param("quantity") Integer quantity);
 
+	/** Increment drug stock (used on refund). Returns number of rows affected. */
+	int incrementStock(@Param("drugId") Integer drugId, @Param("quantity") Integer quantity);
 }

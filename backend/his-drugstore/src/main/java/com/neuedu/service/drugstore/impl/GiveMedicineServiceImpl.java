@@ -6,10 +6,12 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.neuedu.bean.RestBean;
 import com.neuedu.mapper.PrescriptionMapper;
 import com.neuedu.service.drugstore.GiveMedicineService;
+
 @Service
 public class GiveMedicineServiceImpl implements GiveMedicineService {
 	@Autowired
@@ -32,16 +34,20 @@ public class GiveMedicineServiceImpl implements GiveMedicineService {
 		Map<String,Object> map = new HashMap<>();
 		map.put("drug_state", "已缴费");
 		map.put("register_id", id);
-		//根据患者id选择该患者已缴费药品
 		return prescriptionMapper.getPrescriptionRequestAndDrug(map);
 	}
 
 	@Override
-	public RestBean givePatientDrugs(Integer id) {
-		int num = prescriptionMapper.updateStateById(id,"已发药");
+	@Transactional
+	public RestBean givePatientDrugs(Integer registerId) {
+		// Update all prescriptions for this register: 已缴费 → 已发药
+		int num = prescriptionMapper.updateStateByRegisterId(registerId, "已缴费", "已发药");
 		RestBean rest = new RestBean();
-		rest.setMsg("发药成功");
+		if (num > 0) {
+			rest.setMsg("发药成功");
+		} else {
+			rest.setMsg("无待发药品");
+		}
 		return rest;
 	}
-
 }

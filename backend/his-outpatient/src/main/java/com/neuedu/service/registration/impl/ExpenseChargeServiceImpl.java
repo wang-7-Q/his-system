@@ -8,6 +8,7 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.neuedu.bean.RestBean;
 import com.neuedu.mapper.CheckRequestMapper;
@@ -16,6 +17,7 @@ import com.neuedu.mapper.InspectionRequestMapper;
 import com.neuedu.mapper.PrescriptionMapper;
 import com.neuedu.mapper.RegisterMapper;
 import com.neuedu.service.registration.ExpenseChargeService;
+
 @Service
 public class ExpenseChargeServiceImpl implements ExpenseChargeService {
 	@Autowired
@@ -27,19 +29,20 @@ public class ExpenseChargeServiceImpl implements ExpenseChargeService {
 	@Autowired
 	private DisposalRequestMapper disposalRequestMapper;
 	@Autowired
-	private PrescriptionMapper prescriptionMapper;	
-	
-	//收费窗口，获取患者需要收费的记录
+	private PrescriptionMapper prescriptionMapper;
+
+	// 收费窗口，获取患者需要收费的记录
 	@Override
-	public Map<String, Object> searchExpenseChargePatient(String case_number, String real_name) {		
-		return this.searchExpensePatient(case_number, real_name,"已开立");		
+	public Map<String, Object> searchExpenseChargePatient(String case_number, String real_name) {
+		return this.searchExpensePatient(case_number, real_name,"已开立");
 	}
+
 	private Map<String,Object> searchExpensePatient(String case_number, String real_name,String state){
 		List<Map<String,Object>> requestList = new ArrayList<>();
 		Map<String,Object> map = new HashMap<>();
 		map.put("case_number", case_number);
 		map.put("real_name", real_name);
-		
+
 		List<Map<String,Object>> list = registerMapper.getRegisterByProperty(map);
 		Map<String,Object> registMap = null;
 		if(list!=null && list.size()>0) {
@@ -49,17 +52,17 @@ public class ExpenseChargeServiceImpl implements ExpenseChargeService {
 			map.put("register_id", registId);
 			map.put("check_state", state);
 			requestList = checkRequestMap.getCheckRequestAndTechnology(map);
-			
+
 			map.clear();
 			map.put("register_id", registId);
 			map.put("inspection_state", state);
 			requestList.addAll(inspectionRequestMapper.getInspectionRequestAndTechnology(map));
-			
+
 			map.clear();
 			map.put("register_id", registId);
 			map.put("disposal_state", state);
 			requestList.addAll(disposalRequestMapper.getDisposalRequestAndTechnology(map));
-			
+
 			map.clear();
 			map.put("register_id", registId);
 			map.put("drug_state", state);
@@ -80,13 +83,16 @@ public class ExpenseChargeServiceImpl implements ExpenseChargeService {
 		rest.put("requestList", requestList);
 		return rest;
 	}
-	//根据类型，修改检查或检验数据状态为 “已缴费”
+
+	// 根据类型，修改检查或检验数据状态为 "已缴费"
 	@Override
+	@Transactional
 	public RestBean expenseCharge(List<Map<String, Object>> list) {
 		RestBean rest = this.expenseState(list, "已缴费");
 		rest.setMsg("缴费成功");
 		return rest;
 	}
+
 	private RestBean expenseState(List<Map<String, Object>> list,String state) {
 		for(Map<String,Object> m : list) {
 			if("检查".equals(m.get("item_type"))) {
@@ -99,20 +105,24 @@ public class ExpenseChargeServiceImpl implements ExpenseChargeService {
 				disposalRequestMapper.updateStateById(new Integer(m.get("id").toString()),state);
 			}
 		}
-		RestBean rest = new RestBean();		
+		RestBean rest = new RestBean();
 		return rest;
 	}
+
 	@Override
 	public Map<String, Object> searchExpenseRefundPatient(String case_number, String real_name) {
-		return this.searchExpensePatient(case_number, real_name,"已缴费");	
+		return this.searchExpensePatient(case_number, real_name,"已缴费");
 	}
+
 	@Override
+	@Transactional
 	public RestBean expenseRefund(List<Map<String, Object>> list) {
 		RestBean rest = this.expenseState(list, "已退费");
 		rest.setMsg("退费成功");
 		return rest;
 	}
-	//收费窗口：查看所有患者
+
+	// 收费窗口：查看所有患者
 	@Override
 	public Map<String, Object> searchAllPricePatient(String case_number, String real_name) {
 		return this.searchExpensePatient(case_number, real_name,"");

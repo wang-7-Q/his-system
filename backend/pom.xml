@@ -46,6 +46,12 @@
   		<artifactId>mysql-connector-java</artifactId>  	
   	</dependency>
   	
+
+  	<!-- Spring Security Crypto : BCrypt密码加密 -->
+  	<dependency>
+  		<groupId>org.springframework.security</groupId>
+  		<artifactId>spring-security-crypto</artifactId>
+  	</dependency>
   </dependencies>
   <!-- 修改打包插件,部署上线时添加   -->
   <build>

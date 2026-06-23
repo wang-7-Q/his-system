@@ -12,6 +12,9 @@ public interface EmployeeMapper {
 
 	List<Map<String, Object>> getEmployeeByDeptid(String deptment_id);
 
-	List<Map<String, Object>> getEmployeeAndDeptByNamePass(String realname, String password);
-
+	/**
+	 * Look up employee + department by realname (no password check).
+	 * Returns full row including password for service-layer BCrypt verification.
+	 */
+	Map<String, Object> getEmployeeByRealname(String realname);
 }

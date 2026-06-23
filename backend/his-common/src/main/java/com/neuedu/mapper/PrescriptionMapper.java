@@ -13,6 +13,9 @@ public interface PrescriptionMapper {
 	List<Map<String,Object>> getPrescriptionRequestAndDrug(Map<String, Object> map);
 	//根据id将状态改变，例如从 已开立 转为 已缴费
 	int updateStateById(Integer id,String drug_state);
+
+	/** Update state for all prescriptions of a given register, guarded by current state. */
+	int updateStateByRegisterId(Integer registerId, String currentState, String newState);
 	//根据处方属性得到患者信息 分页
 	List<Map<String, Object>> getPrescriptionAndPatientByProperty(String case_number, String real_name,
 			String drug_state,

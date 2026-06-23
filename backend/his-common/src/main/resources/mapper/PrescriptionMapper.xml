@@ -16,36 +16,44 @@
 		now()
 	)
 	</insert>
-	<!-- 根据患者id和状态，查询药品信息 -->
+
+	<!-- 根据患者id和状态，查询药品信息（含drug_info_id用于退药库存恢复） -->
 	<select id="getPrescriptionRequestAndDrug" parameterType="java.util.Map" resultType="java.util.Map">
- 	SELECT p.id id,d.drug_code item_code,d.drug_name item_name,
- 		d.drug_price item_price,p.drug_number item_number,
- 		"药品" as item_type,d.drug_format item_format,
- 		p.creation_time item_create_time,
- 		d.drug_unit drug_unit, d.manufacturer manufacturer,
- 		p.drug_state item_state
- 	FROM prescription p, drug_info d
- 	WHERE p.drug_id = d.id
- 		<if test="drug_state!=null and drug_state!=''">
- 		AND p.drug_state=#{drug_state,jdbcType=VARCHAR}
- 		</if>
- 		AND p.register_id=#{register_id,jdbcType=INTEGER}
+	SELECT p.id id,d.id drug_info_id,d.drug_code item_code,d.drug_name item_name,
+		d.drug_price item_price,p.drug_number item_number,
+		"药品" as item_type,d.drug_format item_format,
+		p.creation_time item_create_time,
+		d.drug_unit drug_unit, d.manufacturer manufacturer,
+		p.drug_state item_state
+	FROM prescription p, drug_info d
+	WHERE p.drug_id = d.id
+		<if test="drug_state!=null and drug_state!=''">
+		AND p.drug_state=#{drug_state,jdbcType=VARCHAR}
+		</if>
+		AND p.register_id=#{register_id,jdbcType=INTEGER}
 	</select>
-	 
+
 	<update id="updateStateById">
 	UPDATE prescription
 	SET drug_state=#{drug_state,jdbcType=VARCHAR}
 	WHERE id=#{id,jdbcType=INTEGER}
 	</update>
-	
-	
+
+	<!-- 按register_id批量更新状态，带当前状态守卫（防重复发药/退药） -->
+	<update id="updateStateByRegisterId">
+	UPDATE prescription
+	SET drug_state=#{newState,jdbcType=VARCHAR}
+	WHERE register_id=#{registerId,jdbcType=INTEGER}
+		AND drug_state=#{currentState,jdbcType=VARCHAR}
+	</update>
+
 	<!-- 根据处方属性得到患者信息（分页） -->
 	<select id="getPrescriptionAndPatientByProperty" resultType="java.util.Map">
 	SELECT r.*
 	FROM register r , (select register_id,drug_state from prescription group by register_id,drug_state having drug_state =#{drug_state}) c
 	WHERE r.id = c.register_id
-	 	AND date(visit_date) = date(now())
-	 	<if test="case_number!=null and case_number!=''">
+		AND date(visit_date) = date(now())
+		<if test="case_number!=null and case_number!=''">
 			AND r.case_number = #{case_number}
 		</if>
 		<if test="real_name!=null and real_name!=''">
@@ -54,18 +62,18 @@
 	ORDER BY r.visit_date DESC
 	LIMIT ${(nowPageNumber-1) * pageSize} ,#{pageSize}
 	</select>
-	<!-- 根据处方属性得到患者信息（分页） -->
+
+	<!-- 根据处方属性得到患者信息总数（分页） -->
 	<select id="getPrescriptionAndPatientCountByProperty" resultType="java.lang.Integer">
 	SELECT count(id)
 	FROM register r , (select register_id,drug_state from prescription group by register_id,drug_state having drug_state =#{drug_state}) c
 	WHERE r.id = c.register_id
-	 	AND date(visit_date) = date(now())
-	 	<if test="case_number!=null and case_number!=''">
+		AND date(visit_date) = date(now())
+		<if test="case_number!=null and case_number!=''">
 			AND r.case_number = #{case_number}
 		</if>
 		<if test="real_name!=null and real_name!=''">
 			AND r.real_name = #{real_name}
 		</if>
 	</select>
- 
 </mapper>
