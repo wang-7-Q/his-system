@@ -1,3 +1,4 @@
+import { RestBean } from '../../models/RestBean'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
 import { PageHeader } from '../../components/PageHeader'
 import { RegistrationService } from '../../services/RegistrationService'
@@ -12,6 +13,8 @@ struct RegistrationRecordPage {
   @Local pageInfo: PageInfo = { page: 1, size: 10, total: 0 }
   @Local confirmVisible: boolean = false
   @Local selectedRow: Object | null = null
+  @Local searchCaseNumber: string = ''
+  @Local searchRealName: string = ''
 
   private columns: ColumnConfig[] = [
     { key: 'case_number', title: '病历号', width: 100 },
@@ -29,7 +32,9 @@ struct RegistrationRecordPage {
   private async loadList(): Promise<void> {
     this.loading = true
     try {
-      const result = await RegistrationService.getRecordRefundPatient()
+      const result: RestBean<Object> = await RegistrationService.getRecordRefundPatient(
+        this.searchCaseNumber, this.searchRealName, this.pageInfo.page, this.pageInfo.size
+      ) as Promise<RestBean<Object>>
       if (result.list) {
         this.tableData = result.list as Object[]
         this.pageInfo.total = result.totalCount
@@ -45,7 +50,15 @@ struct RegistrationRecordPage {
     if (!this.selectedRow) {
       return
     }
-    const registId: string = String((this.selectedRow as Record<string, Object>)['regist_id'] || '')
+    const keys: string[] = Object.keys(this.selectedRow)
+    const values: Object[] = Object.values(this.selectedRow)
+    let registId: string = ''
+    for (let i = 0; i < keys.length; i++) {
+      if (keys[i] === 'id') {
+        registId = String(values[i] || '')
+        break
+      }
+    }
     try {
       const result = await RegistrationService.refundMedicalRecord(registId)
       if (result.status === 1) {
@@ -74,12 +87,63 @@ struct RegistrationRecordPage {
     Stack() {
       Column() {
         PageHeader({ title: '窗口退号' })
+
+        // 搜索区
+        Row() {
+          TextInput({ placeholder: '请输入病历号' })
+            .value(this.searchCaseNumber)
+            .onChange((v: string) => { this.searchCaseNumber = v })
+            .fontSize(13)
+            .height(36)
+            .layoutWeight(1)
+            .margin({ right: 12 })
+
+          TextInput({ placeholder: '请输入患者名' })
+            .value(this.searchRealName)
+            .onChange((v: string) => { this.searchRealName = v })
+            .fontSize(13)
+            .height(36)
+            .layoutWeight(1)
+            .margin({ right: 12 })
+
+          Button('搜索')
+            .fontSize(13)
+            .fontColor('#FFFFFF')
+            .backgroundColor('#409EFF')
+            .borderRadius(4)
+            .height(36)
+            .padding({ left: 16, right: 16 })
+            .onClick(() => this.loadList())
+
+          Button('重置')
+            .fontSize(13)
+            .backgroundColor('#F5F5F5')
+            .fontColor('#606266')
+            .borderRadius(4)
+            .height(36)
+            .padding({ left: 16, right: 16 })
+            .margin({ left: 8 })
+            .onClick(() => {
+              this.searchCaseNumber = ''
+              this.searchRealName = ''
+              this.loadList()
+            })
+        }
+        .width('100%')
+        .margin({ bottom: 12 })
+
         DataTable({
           columns: this.columns,
           data: this.tableData,
           loading: this.loading,
           showActionColumn: true,
           actionColumn: (row: Object) => { this.actionButtons(row) }
+        })
+        .layoutWeight(1)
+
+        PaginationBar({
+          pageInfo: this.pageInfo,
+          onChange: (_page: number, _size: number) => this.loadList()
         })
       }
       .width('100%').height('100%')
